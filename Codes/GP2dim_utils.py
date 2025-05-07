@@ -18,11 +18,19 @@ from george.kernels import Matern32Kernel
 
 
 import sys
-sys.path.insert(0, '/Users/mariavincenzi/PhD/pycoco_2/')
-import pycoco_general_info as PyCoCo_info
+#sys.path.insert(0, '/Users/mariavincenzi/PhD/pycoco_2/')
+#import pycoco_general_info as PyCoCo_info
 
 mycmap = plt.cm.viridis
 mycmap.set_under('r')
+
+color_dict = {'Bessell_U': 'blue', 'Bessell_B': 'royalblue','Bessell_V':  'limegreen',
+              'Bessell_R':  'red', 'Bessell_I':  'mediumvioletred',
+              'sdss_g':'darkgreen','ptf_g':'darkgreen', "sdss_g'":'darkgreen','sdss_i':'indianred',
+              "sdss_i'":'indianred','sdss_r': 'darkred', "sdss_r'":'darkred','sdss_z':'sienna', "sdss_z'":'sienna',
+              'sdss_u': 'darkblue', "sdss_u'": 'darkblue', 'Y':'salmon','H':'darkred', 'J':  'k',
+              'Ks':  'brown','K':  'brown', 'swift_UVW1':'indigo', 'swift_UVW2':'darkblue',
+               'swift_UVM2':'darkmagenta','swift_U':'plum','swift_V':'teal','swift_B':'powderblue'}
 
 
 def prepare_grid(snname, GP2DIM_Class):
@@ -213,7 +221,8 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 											  np.arange(3000.,9000., 10),
 											  np.arange(9000.,10350., 40))))/GP2DIM_Class.grid_norm_info['norm1']
 
-	mu_fill_resh = []
+	#mu_fill_resh = []
+	mu_fill_resh = np.empty((0, 3))
 	std_fill_resh = []
 	
 	slot_size = 3
@@ -256,7 +265,8 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 		mu_resh_iter = mu_iter.reshape(len(wls_normed_range), len(mjd_normed_range))
 		std_resh_iter = std_iter.reshape(len(wls_normed_range), len(mjd_normed_range))
 
-		if mu_fill_resh==[]:
+		#if mu_fill_resh==[]:
+		if mu_fill_resh.size == 0:
 			mu_fill_resh = np.copy(mu_resh_iter)
 			std_fill_resh = np.copy(std_resh_iter)
 		else:
@@ -423,9 +433,13 @@ def transform_back_andPlot(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill, y_
 		plt.fill_between(x1_fill[mask]*norm1, (mu_fill[mask]-std_fill[mask])+(a-1)*scale , 
 				 (mu_fill[mask]+std_fill[mask])+(a-1)*scale , facecolor='r', alpha=0.3)
 	
+	#colors_to_replace = plt.cm.viridis(np.linspace(0, 1, len(GP2DIM_Class.avail_filters)))
+	#plt.xlim(1600,11000)
+	#for i, b in enumerate(GP2DIM_Class.avail_filters):
+	#	plt.vlines((GP2DIM_Class.lam_eff(b)), 0, 1., linestyle='--', lw=4, label=b, color=colors_to_replace[b])
 	plt.xlim(1600,11000)
 	for b in GP2DIM_Class.avail_filters:
-		plt.vlines((GP2DIM_Class.lam_eff(b)), 0, 1., linestyle='--', lw=4, label=b, color=PyCoCo_info.color_dict[b])
+	 	plt.vlines((GP2DIM_Class.lam_eff(b)), 0, 1., linestyle='--', lw=4, label=b, color=color_dict[b])
 
 	plt.title(GP2DIM_Class.snname)
 	plt.xlabel('Wavelength')
@@ -537,9 +551,9 @@ def save_plots_files(GP2DIM_Class, list_mjds_tot, y_data_conv, x1_fill, x2_fill,
 							 (ext_spec_flx+ext_spec_flx_err)+(a+1)*scale, 
 							 alpha=0.3, facecolor='k')
 
-			plt.text(ext_spec_wls[0], (a+1)*scale, '%.2f'%(mj-min_mjd))
+			plt.text(ext_spec_wls[0], (a+1)*scale, '%.6f'%(mj-min_mjd))
 			# write the file
-			fout = open(results_directory+'/%.2f_spec_extended.txt'%mj, 'w')
+			fout = open(results_directory+'/%.6f_spec_extended.txt'%mj, 'w')
 			fout.write('#wls\tflux\tfluxerr\n')
 			for w,f,ferr in zip(ext_spec_wls, ext_spec_flx,ext_spec_flx_err):
 				fout.write('%E\t%E\t%E\n'%(w,f,ferr))
@@ -550,8 +564,8 @@ def save_plots_files(GP2DIM_Class, list_mjds_tot, y_data_conv, x1_fill, x2_fill,
 			plt.fill_between(wls, (smooth_ext_spec-smooth_ext_spec_err)+(a+1)*scale,
 							 (smooth_ext_spec+smooth_ext_spec_err)+(a+1)*scale,
 							 alpha=0.3, facecolor='r')
-			plt.text(wls[0], (a+1)*scale, '%.2f'%(mj-min_mjd))
-			fout = open(results_directory+'/%.2f_spec_extended_FL.txt'%mj, 'w')
+			plt.text(wls[0], (a+1)*scale, '%.6f'%(mj-min_mjd))
+			fout = open(results_directory+'/%.6f_spec_extended_FL.txt'%mj, 'w')
 			fout.write('#wls\tflux\tfluxerr\n')
 			for w,f,ferr in zip(wls, smooth_ext_spec, smooth_ext_spec_err):
 				fout.write('%E\t%E\t%E\n'%(w,f,ferr))
