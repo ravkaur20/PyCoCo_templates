@@ -153,6 +153,8 @@ def setPRIOR(GP2DIM_Class, type_=None, PRIOR_file=None, PRIOR_folder=None):
 			PRIOR_file = '/prior_SE.txt'
 		else: print ('Specify a PRIOR please')
 	wls_prior, phase_prior, color_prior = np.genfromtxt(PRIOR_folder+PRIOR_file, delimiter=',', unpack=True)
+	print("Loaded prior grid. Any NaN in color_prior:", np.any(np.isnan(color_prior)))
+	print("color_prior min/max:", np.nanmin(color_prior), np.nanmax(color_prior))
 	wls_prior_norm = wls_prior/norm1
 	
 	#DATALC_PATH+'/results_template/%s/fitted_phot_%s.dat'%(snname,snname)
@@ -166,9 +168,22 @@ def setPRIOR(GP2DIM_Class, type_=None, PRIOR_file=None, PRIOR_folder=None):
 	phase_prior_norm = ((phase_prior+int(peak))-offset2)/norm2
 	
 	reshaped_color_prior = color_prior.reshape(len(np.unique(wls_prior)),len(np.unique(phase_prior)))
+	print("reshaped_color_prior shape:", reshaped_color_prior.shape)
+	print("reshaped_color_prior min/max:", np.nanmin(reshaped_color_prior), np.nanmax(reshaped_color_prior))
+	print("original_fit.MJD-peak min/max:", np.min(original_fit.MJD-peak), np.max(original_fit.MJD-peak))
+	print("np.unique(phase_prior) min/max:", np.min(np.unique(phase_prior)), np.max(np.unique(phase_prior)))
 	Vflux_phase = np.interp(np.unique(phase_prior), original_fit.MJD-peak,Vflux)
+	print("Vflux_phase shape:", Vflux_phase.shape)
+	print("Vflux_phase min/max:", np.nanmin(Vflux_phase), np.nanmax(Vflux_phase))
+	print("Any <= 0 in Vflux_phase:", np.any(Vflux_phase <= 0))
 	flux_prior = (reshaped_color_prior*Vflux_phase)
+	print("flux_prior shape:", flux_prior.shape)
+	print("Any <= 0 in flux_prior:", np.any(flux_prior <= 0))
+	print("flux_prior min/max:", np.nanmin(flux_prior), np.nanmax(flux_prior))
 	flux_prior_transform = (np.log(flux_prior)-offset)/scale_factor
+	print("Any NaN in flux_prior_transform:", np.any(np.isnan(flux_prior_transform)))
+	print("Any Inf in flux_prior_transform:", np.any(~np.isfinite(flux_prior_transform)))
+	print("flux_prior_transform min/max:", np.nanmin(flux_prior_transform), np.nanmax(flux_prior_transform))
 	points = np.array([tup for tup in zip(wls_prior_norm, phase_prior_norm)])
 	values = (flux_prior_transform).reshape(len(np.unique(phase_prior))*len(np.unique(wls_prior)))
 	return points, values
@@ -197,8 +212,15 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 		class Model_2dim(Model):
 			parameter_names = ()
 			def get_value(self, t):
+				print("t shape:", t.shape)
+				print("t contents:", t)
 				points_eval = np.array([tup for tup in zip(t[:,0], t[:,1])])
+				if points_eval.size == 0:
+					print("Warning: points_eval is empty!")
+				print("points_eval min/max:", points_eval.min(axis=0), points_eval.max(axis=0))
+				print("points min/max:", points.min(axis=0), points.max(axis=0))
 				grid_z1 = griddata(points, values, points_eval, method='nearest')
+				print("grid_z1 contains NaN:", np.any(np.isnan(grid_z1)))
 				grid_z1[np.isnan(grid_z1)] = 0.
 				#plt.plot(t[:,0]*norm1, grid_z1, '-b', label='PRIOR')
 				return grid_z1
