@@ -24,14 +24,40 @@ import sys
 mycmap = plt.cm.viridis
 mycmap.set_under('r')
 
-color_dict = {'Bessell_U': 'blue', 'Bessell_B': 'royalblue','Bessell_V':  'limegreen',
-              'Bessell_R':  'red', 'Bessell_I':  'mediumvioletred',
-              'sdss_g':'darkgreen','ptf_g':'darkgreen', "sdss_g'":'darkgreen','sdss_i':'indianred',
-              "sdss_i'":'indianred','sdss_r': 'darkred', "sdss_r'":'darkred','sdss_z':'sienna', "sdss_z'":'sienna',
-              'sdss_u': 'darkblue', "sdss_u'": 'darkblue', 'Y':'salmon','H':'darkred', 'J':  'k',
-              'Ks':  'brown','K':  'brown', 'swift_UVW1':'indigo', 'swift_UVW2':'darkblue',
-               'swift_UVM2':'darkmagenta','swift_U':'plum','swift_V':'teal','swift_B':'powderblue'}
+# color_dict = {'Bessell_U': 'blue', 'Bessell_B': 'royalblue','Bessell_V':  'limegreen',
+#               'Bessell_R':  'red', 'Bessell_I':  'mediumvioletred',
+#               'sdss_g':'darkgreen','ptf_g':'darkgreen', "sdss_g'":'darkgreen','sdss_i':'indianred',
+#               "sdss_i'":'indianred','sdss_r': 'darkred', "sdss_r'":'darkred','sdss_z':'sienna', "sdss_z'":'sienna',
+#               'sdss_u': 'darkblue', "sdss_u'": 'darkblue', 'Y':'salmon','H':'darkred', 'J':  'k',
+#               'Ks':  'brown','K':  'brown', 'swift_UVW1':'indigo', 'swift_UVW2':'darkblue',
+#                'swift_UVM2':'darkmagenta','swift_U':'plum','swift_V':'teal','swift_B':'powderblue'}
 
+color_dict = {
+    'Swope_i': 'indianred',
+    'FourStar_H': 'darkred',
+    'FourStar_J': 'black',
+    'Sinistro_w': 'gray',
+    'FourStar_Ks': 'brown',
+    'Sinistro_g': 'darkgreen',
+    'Sinistro_r': 'crimson',
+    'EFOSC2_V': 'limegreen',
+    'Sinistro_i': 'firebrick',
+    'Swope_V': 'green',
+    'FourStar_J1': 'dimgray',
+    'Swope_B': 'royalblue',
+    'Swope_r': 'red',
+    'EFOSC2_U': 'blue',
+    'Swope_g': 'darkseagreen',
+    'Sinistro_z': 'sienna',
+    'IMACS_r': 'darkred',
+    'RetroCam_Y': 'salmon',
+    'RetroCam_H': 'maroon',
+    'RetroCam_J': 'black',
+    'LRIS_I': 'mediumvioletred',
+    'LRIS_g': 'seagreen',
+    'SOFI_H': 'firebrick',
+    'SOFI_Ks': 'saddlebrown'
+}
 
 def prepare_grid(snname, GP2DIM_Class):
 	lcfit = GP2DIM_Class.open_LCfit_file()
@@ -160,10 +186,14 @@ def setPRIOR(GP2DIM_Class, type_=None, PRIOR_file=None, PRIOR_folder=None):
 	#DATALC_PATH+'/results_template/%s/fitted_phot_%s.dat'%(snname,snname)
 
 	original_fit = pd.read_csv(GP2DIM_Class.path_fit_phot ,delimiter='\t')
-	original_fit.dropna(subset=['Bessell_V'], inplace=True)
-	Vflux = original_fit['Bessell_V'].values
-	if 'Bessell_B' in original_fit.columns: BVflux = original_fit['Bessell_V'].values + original_fit['Bessell_B'].values
-	else: BVflux = original_fit['Bessell_V'].values + original_fit['swift_B'].values
+	original_fit.dropna(subset=['Swope_V'], inplace=True)
+	Vflux = original_fit['Swope_V'].values
+	if 'Swope_B' in original_fit.columns: BVflux = original_fit['Swope_V'].values + original_fit['Swope_B'].values
+	else: BVflux = original_fit['Swope_V'].values + original_fit['Swope_B'].values
+	#original_fit.dropna(subset=['Bessell_V'], inplace=True)
+	#Vflux = original_fit['Bessell_V'].values
+	#if 'Bessell_B' in original_fit.columns: BVflux = original_fit['Bessell_V'].values + original_fit['Bessell_B'].values
+	#else: BVflux = original_fit['Bessell_V'].values + original_fit['swift_B'].values
 	peak = (original_fit.MJD.values[np.argmax(BVflux[~np.isnan(BVflux)])])
 	phase_prior_norm = ((phase_prior+int(peak))-offset2)/norm2
 	
@@ -217,8 +247,8 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 				points_eval = np.array([tup for tup in zip(t[:,0], t[:,1])])
 				if points_eval.size == 0:
 					print("Warning: points_eval is empty!")
-				print("points_eval min/max:", points_eval.min(axis=0), points_eval.max(axis=0))
-				print("points min/max:", points.min(axis=0), points.max(axis=0))
+				#print("points_eval min/max:", points_eval.min(axis=0), points_eval.max(axis=0))
+				#print("points min/max:", points.min(axis=0), points.max(axis=0))
 				grid_z1 = griddata(points, values, points_eval, method='nearest')
 				print("grid_z1 contains NaN:", np.any(np.isnan(grid_z1)))
 				grid_z1[np.isnan(grid_z1)] = 0.
@@ -270,19 +300,20 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 		mu_iter, cov_iter = (gp.predict(y, X_fill, return_cov=True))
 		std_iter = np.sqrt(np.diag(cov_iter))
 		count=0
-		for mj in mjd_normed_range:
-			fig = plt.figure(figsize=(8,2))
-			plt.subplot(1,slot_size,count+1)
-			plt.plot(norm1*x1_fill[x2_fill==mj], mu_iter[x2_fill==mj], '-k', label='PREDICTION')
-			if prior:
-				points_eval = np.array([tup for tup in zip(x1_fill[x2_fill==mj], x2_fill[x2_fill==mj])])
-				grid_z1 = griddata(points, values, points_eval, method='nearest')
-				grid_z1[np.isnan(grid_z1)] = 0.
-				plt.plot(norm1*x1_fill[x2_fill==mj], grid_z1, '-b', label='PRIOR')
-			plt.legend()
-			plt.show()
-			plt.close(fig)
-			count=count+1
+		#commenting this out for now, so it doesn't clog up my output [RAV]
+		# for mj in mjd_normed_range:
+		# 	fig = plt.figure(figsize=(8,2))
+		# 	plt.subplot(1,slot_size,count+1)
+		# 	plt.plot(norm1*x1_fill[x2_fill==mj], mu_iter[x2_fill==mj], '-k', label='PREDICTION')
+		# 	if prior:
+		# 		points_eval = np.array([tup for tup in zip(x1_fill[x2_fill==mj], x2_fill[x2_fill==mj])])
+		# 		grid_z1 = griddata(points, values, points_eval, method='nearest')
+		# 		grid_z1[np.isnan(grid_z1)] = 0.
+		# 		plt.plot(norm1*x1_fill[x2_fill==mj], grid_z1, '-b', label='PRIOR')
+		# 	plt.legend()
+		# 	plt.show()
+		# 	plt.close(fig)
+		# 	count=count+1
 
 		mu_resh_iter = mu_iter.reshape(len(wls_normed_range), len(mjd_normed_range))
 		std_resh_iter = std_iter.reshape(len(wls_normed_range), len(mjd_normed_range))
