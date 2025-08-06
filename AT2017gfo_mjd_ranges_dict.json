@@ -1,0 +1,94 @@
+{
+  "EFOSC2_U": {
+    "min_mjd": 57984.0481,
+    "max_mjd": 57984.0559
+  },
+  "EFOSC2_V": {
+    "min_mjd": 57983.964,
+    "max_mjd": 57986.0531
+  },
+  "FourStar_H": {
+    "min_mjd": 57982.9902,
+    "max_mjd": 57984.9714
+  },
+  "FourStar_J": {
+    "min_mjd": 57983.0,
+    "max_mjd": 57985.9728
+  },
+  "FourStar_J1": {
+    "min_mjd": 57984.0022,
+    "max_mjd": 57984.9801
+  },
+  "FourStar_Ks": {
+    "min_mjd": 57983.03,
+    "max_mjd": 58000.99
+  },
+  "IMACS_r": {
+    "min_mjd": 57985.0094,
+    "max_mjd": 57985.0094
+  },
+  "LRIS_I": {
+    "min_mjd": 57989.2344,
+    "max_mjd": 57989.2344
+  },
+  "RetroCam_H": {
+    "min_mjd": 57986.983,
+    "max_mjd": 57992.984
+  },
+  "RetroCam_J": {
+    "min_mjd": 57986.998,
+    "max_mjd": 57991.0
+  },
+  "RetroCam_Y": {
+    "min_mjd": 57986.971,
+    "max_mjd": 57988.0
+  },
+  "SOFI_H": {
+    "min_mjd": 57993.997,
+    "max_mjd": 57993.997
+  },
+  "SOFI_Ks": {
+    "min_mjd": 57994.985,
+    "max_mjd": 57995.99
+  },
+  "Sinistro_g": {
+    "min_mjd": 57983.401,
+    "max_mjd": 57985.017
+  },
+  "Sinistro_i": {
+    "min_mjd": 57983.972,
+    "max_mjd": 57985.736
+  },
+  "Sinistro_r": {
+    "min_mjd": 57983.405,
+    "max_mjd": 57987.358
+  },
+  "Sinistro_w": {
+    "min_mjd": 57983.011,
+    "max_mjd": 57986.992
+  },
+  "Sinistro_z": {
+    "min_mjd": 57984.751,
+    "max_mjd": 57985.74
+  },
+  "Swope_B": {
+    "min_mjd": 57984.0342,
+    "max_mjd": 57985.9951
+  },
+  "Swope_V": {
+    "min_mjd": 57983.9948,
+    "max_mjd": 57985.9893
+  },
+  "Swope_g": {
+    "min_mjd": 57984.0548,
+    "max_mjd": 57987.0044
+  },
+  "Swope_i": {
+    "min_mjd": 57982.9814,
+    "max_mjd": 57989.9897
+  },
+  "Swope_r": {
+    "min_mjd": 57984.0472,
+    "max_mjd": 57986.9965
+  }
+}
