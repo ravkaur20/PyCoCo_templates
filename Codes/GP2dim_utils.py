@@ -121,7 +121,8 @@ def transform2LOG_reshape(GP2DIM_Class, raw_numbers, raw_numbers_err,  off_xa, o
 	y_data_nonan = np.copy(data_scaled[NOT_Isnan])
 	y_data_nonan_err = np.copy(data_error_scaled[NOT_Isnan])
 			
-	norm1 = 11000.#max(x1_data)
+	#norm1 = 11000.#max(x1_data)
+	norm1 = max(x1_data)
 	offset2 = min(x2_data)
 	norm2 = max(x2_data-offset2)
 	
@@ -269,9 +270,13 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 
 	gp.compute(X, yerr)
 		
-	wls_normed_range = np.sort(np.concatenate(( np.arange(1600.,3000., 40),
-											  np.arange(3000.,9000., 10),
-											  np.arange(9000.,10350., 40))))/GP2DIM_Class.grid_norm_info['norm1']
+	# wls_normed_range = np.sort(np.concatenate(( np.arange(1600.,3000., 40),
+	# 										  np.arange(3000.,9000., 10),
+	# 										  np.arange(9000.,10350., 40))))/GP2DIM_Class.grid_norm_info['norm1']
+	#RAV added this
+	wls_min = np.min(GP2DIM_Class.grids[0])
+	wls_max = np.max(GP2DIM_Class.grids[0])
+	wls_normed_range = np.arange(wls_min, wls_max + 1, 40) / GP2DIM_Class.grid_norm_info['norm1']
 
 	#mu_fill_resh = []
 	mu_fill_resh = np.empty((0, 3))
@@ -490,7 +495,8 @@ def transform_back_andPlot(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill, y_
 	#plt.xlim(1600,11000)
 	#for i, b in enumerate(GP2DIM_Class.avail_filters):
 	#	plt.vlines((GP2DIM_Class.lam_eff(b)), 0, 1., linestyle='--', lw=4, label=b, color=colors_to_replace[b])
-	plt.xlim(1600,11000)
+	#RAV commented this out
+	#plt.xlim(1600,11000)
 	for b in GP2DIM_Class.avail_filters:
 	 	plt.vlines((GP2DIM_Class.lam_eff(b)), 0, 1., linestyle='--', lw=4, label=b, color=color_dict[b])
 
@@ -530,7 +536,7 @@ def transform_back_andPlot(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill, y_
 		plt.plot(spec_file_original['wls'], spec_file_original['flux']+(a-1)*scale,
 				 label='Raw spec %i'%(mj-offset2), lw=1, color='k')
 	
-	plt.xlim(1600,11000)
+	#plt.xlim(1600,11000)
 	
 	#for b in GP2DIM_Class.avail_filters:
 	#	wls, T = GP2DIM_Class.get_filt_transmission(b)
