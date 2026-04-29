@@ -11,9 +11,44 @@ CODES = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if CODES not in sys.path:
     sys.path.insert(0, CODES)
 
-import GP2dim_utils_newlog as g
+import gp2dim_phase_merge as phase_merge
+
+try:
+    import GP2dim_utils_newlog as g
+except ImportError:  # e.g. george not installed
+    g = None
+
+skip_gp2dim = unittest.skipIf(g is None, "GP2dim_utils_newlog import failed (need george, pandas, etc.)")
 
 
+class TestMergeDenseLogPhase(unittest.TestCase):
+    """Optional prediction-phase densification: logspace in linear days / uniform in dex."""
+
+    def test_n_below_2_returns_original(self):
+        x = np.array([-3.0, -1.0, 0.5])
+        np.testing.assert_array_equal(phase_merge.merge_extrap_mjds_dense_log_phase(x, 1), x)
+
+    def test_preserves_all_original_columns(self):
+        orig = np.array([-2.7, -1.2, 0.1, -0.05])
+        merged = phase_merge.merge_extrap_mjds_dense_log_phase(orig, 32)
+        self.assertGreater(len(merged), len(orig))
+        for v in orig:
+            self.assertTrue(np.any(np.isclose(merged, v, rtol=0.0, atol=1e-9)))
+
+    def test_endpoints_only_uniform_dex_spacing(self):
+        """Only min/max columns: merged interior matches linspace in log10(days)."""
+        lo, hi = -3.0, -1.0
+        n = 5
+        merged = phase_merge.merge_extrap_mjds_dense_log_phase(np.array([lo, hi]), n)
+        expect = np.linspace(lo, hi, n)
+        np.testing.assert_allclose(merged, expect, rtol=0.0, atol=1e-11)
+
+    def test_single_phase_no_change(self):
+        x = np.array([-1.5])
+        np.testing.assert_array_equal(phase_merge.merge_extrap_mjds_dense_log_phase(x, 50), x)
+
+
+@skip_gp2dim
 class TestGp2dimNewlog(unittest.TestCase):
     def test_scaled_ln_to_linear_clamp(self):
         offset, scale = 0.0, 1.0
@@ -66,6 +101,7 @@ class TestGpPredictionGrid(unittest.TestCase):
         self.assertGreaterEqual(n_wl_use, 2)
 
 
+@skip_gp2dim
 class TestGpDenseMatrixHint(unittest.TestCase):
     def test_bytes_scales_as_n_squared(self):
         self.assertEqual(g.gp_dense_matrix_bytes_order_of_magnitude(0), 0)
@@ -79,6 +115,7 @@ class TestGpDenseMatrixHint(unittest.TestCase):
             g.gp_dense_matrix_bytes_order_of_magnitude(-1)
 
 
+@skip_gp2dim
 class TestPhaseAxisDenormForPlots(unittest.TestCase):
     """Training plots use offset2 + norm2*x2_norm to recover log10(phase days)."""
 
@@ -108,6 +145,20 @@ class TestPhaseAxisDenormForPlots(unittest.TestCase):
         np.testing.assert_allclose(days, np.power(10.0, offset2 + norm2 * x2_norm))
 
 
+@skip_gp2dim
+class TestLogPredictionPhaseCoverage(unittest.TestCase):
+    def test_counts_bracket(self):
+        import io
+        from contextlib import redirect_stdout
+
+        cols = [-3.5, -2.0, 0.5, -1.5]
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            g.log_prediction_phase_coverage(cols, lo=-3.0, hi=-1.0, label="t")
+        s = buf.getvalue()
+        self.assertIn("2 of 4", s)
+
+
 try:
     import george
     from george.kernels import Matern32Kernel
@@ -135,6 +186,7 @@ class TestGeorgePredictUsesVar(unittest.TestCase):
         self.assertTrue(np.all(np.isfinite(var)))
 
 
+@skip_gp2dim
 class TestMangledSpecWavelengthConvention(unittest.TestCase):
     """Guards against ``10**`` on linear-Å mangled files (overflow)."""
 
@@ -161,6 +213,7 @@ class TestMangledSpecWavelengthConvention(unittest.TestCase):
         self.assertLess(np.max(flin), 1.0)
 
 
+@skip_gp2dim
 class TestFillGapsPhaseLogspace(unittest.TestCase):
     """Gap fill in log-phase grid uses linear-day thresholds (matches original linear notebook)."""
 
@@ -194,6 +247,7 @@ class TestFillGapsPhaseLogspace(unittest.TestCase):
         self.assertGreater(np.count_nonzero(in_bracket), 0)
 
 
+@skip_gp2dim
 class TestSetPriorNewlog(unittest.TestCase):
     def test_setprior_log_flux_columns(self):
         """setPRIOR runs with *_log_flux LC and a minimal prior grid."""
@@ -234,6 +288,7 @@ class TestSetPriorNewlog(unittest.TestCase):
         self.assertTrue(np.all(np.isfinite(values)))
 
 
+@skip_gp2dim
 @unittest.skipIf(george is None, "george not installed")
 class TestRun2DGPGridDiagnosticSlices(unittest.TestCase):
     """Optional per-phase prior vs prediction PDFs (first slot only; bounded cost)."""
@@ -290,6 +345,7 @@ class TestRun2DGPGridDiagnosticSlices(unittest.TestCase):
             self.assertLessEqual(len(pdfs), 3)
 
 
+@skip_gp2dim
 @unittest.skipIf(george is None, "george not installed")
 class TestRun2DGPGridNoDiagnostics(unittest.TestCase):
     def test_no_diag_pdfs_when_disabled(self):

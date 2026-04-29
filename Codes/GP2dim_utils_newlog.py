@@ -13,9 +13,10 @@ from itertools import cycle
 from scipy.interpolate import griddata
 
 
+from gp2dim_phase_merge import merge_extrap_mjds_dense_log_phase
+
 import george
 from george.kernels import Matern32Kernel
-
 
 import sys
 import time
@@ -126,6 +127,20 @@ def x2_mask_for_phase(x2_fill, phase_log, offset2, norm2):
 def phases_close(mj, phase_array, atol=1e-9):
 	"""True if ``mj`` matches any spectroscopic epoch in ``phase_array`` (log10 days)."""
 	return np.any(np.isclose(np.asarray(phase_array, dtype=float), float(mj), rtol=0.0, atol=atol))
+
+
+def log_prediction_phase_coverage(phase_columns, *, lo=-3.0, hi=-1.0, label="prediction columns"):
+	"""Print how many grid / prediction columns fall in early log10(phase days) range (per plan item 5)."""
+	logp = np.asarray(phase_columns, dtype=float).ravel()
+	if logp.size == 0:
+		print("[GP2dim] %s: empty" % label, flush=True)
+		return
+	m = np.isfinite(logp) & (logp >= float(lo)) & (logp <= float(hi))
+	print(
+		"[GP2dim] %s: %i of %i with log10(phase days) in [%.1f, %.1f]"
+		% (label, int(np.count_nonzero(m)), int(logp.size), lo, hi),
+		flush=True,
+	)
 
 
 def phase_days_from_norm_x2(x2_norm, offset2, norm2):
@@ -483,10 +498,18 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 			)
 
 	kernel_mix = Matern32Kernel([kernel_wls_scale, kernel_time_scale], ndim=2)
-	kernel2dim = np.var(y)*kernel_mix #+ 0.3*np.var(y)*kernel2*kernel1
-	
-	if prior: gp = george.GP(kernel2dim, mean=mean_model)  #, fit_mean=True, fit_white_noise=True)
-	else:  gp = george.GP(kernel2dim)
+	kernel2dim = np.var(y) * kernel_mix
+	_gp_wn = float(getattr(GP2DIM_Class, "gp_white_noise", 0.0))
+	# George >=0.4: homogeneous jitter via GP(white_noise=ln(variance)); legacy code used
+	# kernels.WhiteKernel(c) with c the *variance* added on the diagonal (not log).
+	_gp_extra = {}
+	if _gp_wn > 0.0:
+		_gp_extra["white_noise"] = float(np.log(_gp_wn))
+
+	if prior:
+		gp = george.GP(kernel2dim, mean=mean_model, **_gp_extra)
+	else:
+		gp = george.GP(kernel2dim, **_gp_extra)
 
 	_gp_log("[run_2DGP_GRID] calling gp.compute (no progress inside; may take minutes) …")
 	_t0 = time.perf_counter()
@@ -501,8 +524,14 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 	# wls_max = np.max(GP2DIM_Class.grids[0])
 	# wls_normed_range = np.arange(wls_min, wls_max + 1, 40) / GP2DIM_Class.grid_norm_info['norm1']
 
-	wls_min = np.min(GP2DIM_Class.grids[0])
-	wls_max = np.max(GP2DIM_Class.grids[0])
+	wls_min = float(np.min(GP2DIM_Class.grids[0]))
+	wls_max = float(np.max(GP2DIM_Class.grids[0]))
+	_wl_min_a = getattr(GP2DIM_Class, "pipeline_wl_min_a", None)
+	_wl_max_a = getattr(GP2DIM_Class, "pipeline_wl_max_a", None)
+	if _wl_min_a is not None:
+		wls_min = min(wls_min, float(np.log10(float(_wl_min_a))))
+	if _wl_max_a is not None:
+		wls_max = max(wls_max, float(np.log10(float(_wl_max_a))))
 	span_wl = float(wls_max - wls_min)
 	if span_wl <= 0.0:
 		raise ValueError("run_2DGP_GRID: invalid log10(wavelength) span (wls_max <= wls_min).")
@@ -526,6 +555,18 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 	extrap_mjds = np.asarray(extrap_mjds, dtype=float)
 	if extrap_mjds.size == 0:
 		raise ValueError("run_2DGP_GRID: extrap_mjds is empty (no phase columns to predict).")
+	_dense_on = bool(getattr(GP2DIM_Class, "gp_predict_dense_log_phase", False))
+	_dense_n = int(getattr(GP2DIM_Class, "gp_predict_dense_log_phase_n", 64))
+	if _dense_on:
+		_phase_before = extrap_mjds.copy()
+		extrap_mjds = merge_extrap_mjds_dense_log_phase(extrap_mjds, _dense_n)
+		if _log_progress:
+			_gp_log(
+				"[run_2DGP_GRID] dense log-phase prediction: %i → %i columns (n_dense=%i)"
+				% (len(_phase_before), len(extrap_mjds), _dense_n)
+			)
+			log_prediction_phase_coverage(_phase_before, label="phase columns (before dense merge)")
+			log_prediction_phase_coverage(extrap_mjds, label="phase columns (after dense merge)")
 	tot_iteration = max(1, int(len(extrap_mjds) / slot_size + 1))
 	frac_tot_iteration = 0
 	if _log_progress:
@@ -997,89 +1038,125 @@ def transform_back_andPlot(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill, y_
 
 
 def save_plots_files(GP2DIM_Class, list_mjds_tot, y_data_conv, x1_fill, x2_fill, mu_fill_conv, std_fill_conv):
-	results_directory = GP2DIM_Class.save_plot_path
+	"""Write extended spectra.
+
+	With ``save_dual_products=True`` (set in notebook 6 when using the ``twodim/<mode>/`` layout),
+	writes under ``…/spliced/`` and ``…/full_gp/`` beneath ``save_plot_path``, plus optional
+	``…/diagnostics/gp_vs_spliced_<phase>.pdf``. Default ``save_dual_products`` is False (single
+	flat directory, legacy behavior).
+	"""
+	_base = GP2DIM_Class.save_plot_path
+	_dual = bool(getattr(GP2DIM_Class, "save_dual_products", False))
+	if _dual:
+		_sub_sp = getattr(GP2DIM_Class, "subdir_spliced", "spliced")
+		_sub_fg = getattr(GP2DIM_Class, "subdir_full_gp", "full_gp")
+		_sub_dg = getattr(GP2DIM_Class, "subdir_diagnostics", "diagnostics")
+		dir_spliced = os.path.join(_base, _sub_sp)
+		dir_full_gp = os.path.join(_base, _sub_fg)
+		dir_diag = os.path.join(_base, _sub_dg)
+		for _d in (dir_spliced, dir_full_gp, dir_diag):
+			os.makedirs(_d, exist_ok=True)
+	else:
+		dir_spliced = dir_full_gp = _base
+		dir_diag = None
+
 	norm1 = GP2DIM_Class.grid_norm_info['norm1']
 	norm2 = GP2DIM_Class.grid_norm_info['norm2']
-	offset = GP2DIM_Class.grid_norm_info['offset']
 	offset2 = GP2DIM_Class.grid_norm_info['offset2']
-	scale_factor = GP2DIM_Class.grid_norm_info['scale_factor']
 
-	fig = plt.figure(1, figsize=(11,8))
-	
+	def _write_spec_txt(out_dir, mj, fname_suffix, wls_a, flx, flxerr):
+		pth = os.path.join(out_dir, '%.6f%s' % (float(mj), fname_suffix))
+		with open(pth, 'w') as fout:
+			fout.write('#wls\tflux\tfluxerr\n')
+			for w, f, ferr in zip(wls_a, flx, flxerr):
+				fout.write('%E\t%E\t%E\n' % (w, f, ferr))
+
+	fig = plt.figure(1, figsize=(11, 8))
+
 	max_val = np.max(y_data_conv)
 	med_val = np.median(y_data_conv)
 
-	scale = (max_val-med_val)/5.
-	#list_mjds_tot = grid_ext_columns
-	
+	scale = (max_val - med_val) / 5.
+
 	list_mjds_spec = np.array(GP2DIM_Class.get_spec_mjd())
 	list_mjds_spec_file = np.array(GP2DIM_Class.mangledspec_list)
-#	if snname=='iPTF13bvn':
-#		list_mjds_spec_special = np.array([56463.43, 56468.42, 56473.39, 56476.31, 56478.35,
-#					   56481.34, 56483.36, 56486.33, 56488.35, 56493.29])
 
 	min_mjd = min(list_mjds_tot)
-	a=0
+	a = 0
 	for j in range(len(list_mjds_tot)):
 		mj = list_mjds_tot[j]
 		mask = x2_mask_for_phase(x2_fill, mj, offset2, norm2)
-		wls = x1_fill[mask]*norm1
+		wls = x1_fill[mask] * norm1
 		smooth_ext_spec = mu_fill_conv[mask]
 		smooth_ext_spec_err = std_fill_conv[mask]
 
-		a = a-1
+		a = a - 1
 
-		if phases_close(mj, list_mjds_spec)&(GP2DIM_Class.mode=='extend_spectra'):
+		if phases_close(mj, list_mjds_spec) & (GP2DIM_Class.mode == 'extend_spectra'):
 			idx = np.where(np.isclose(list_mjds_spec, float(mj), rtol=0.0, atol=1e-9))[0]
 			file = list_mjds_spec_file[idx[0]]
 			spec_orig = GP2DIM_Class.load_mangledfile(file)
-			# Mangled: linear Å + log10 flux; GP output is linear flux
 			wls_lin = mangled_wls_linear_angstrom(spec_orig)
 			flx_lin = mangled_flux_linear_from_log10(spec_orig['flux'])
 			ferr_lin = np.abs(flx_lin * spec_orig['fluxerr'] * np.log(10.0))
-			UV_mask = (10**wls<min(wls_lin))
-			IR_mask = (10**wls>max(wls_lin))
-			ext_spec_wls = np.concatenate((10**wls[UV_mask], 
-										   wls_lin, 
-										   10**wls[IR_mask]))
-			ext_spec_flx = np.concatenate((smooth_ext_spec[UV_mask], 
-										   flx_lin, 
-										   smooth_ext_spec[IR_mask]))
-			ext_spec_flx_err = np.concatenate((smooth_ext_spec_err[UV_mask], 
-											   ferr_lin, 
-											   smooth_ext_spec_err[IR_mask]))
+			UV_mask = (10 ** wls < np.min(wls_lin))
+			IR_mask = (10 ** wls > np.max(wls_lin))
+			ext_spec_wls = np.concatenate((10 ** wls[UV_mask], wls_lin, 10 ** wls[IR_mask]))
+			ext_spec_flx = np.concatenate((smooth_ext_spec[UV_mask], flx_lin, smooth_ext_spec[IR_mask]))
+			ext_spec_flx_err = np.concatenate((
+				smooth_ext_spec_err[UV_mask], ferr_lin, smooth_ext_spec_err[IR_mask],
+			))
 
-			plt.plot(wls_lin, flx_lin+(a+1)*scale, lw=1, color='b')
-			plt.plot(ext_spec_wls, ext_spec_flx+(a+1)*scale, lw=0.6, color='k', linestyle='--')
-			plt.fill_between(ext_spec_wls, 
-							 (ext_spec_flx-ext_spec_flx_err)+(a+1)*scale, 
-							 (ext_spec_flx+ext_spec_flx_err)+(a+1)*scale, 
-							 alpha=0.3, facecolor='k')
+			wls_lin_out_full = 10 ** wls
+			flx_full_gp = smooth_ext_spec
+			err_full_gp = smooth_ext_spec_err
 
-			plt.text(ext_spec_wls[0], (a+1)*scale, '%.6f'%(mj-min_mjd))
-			# write the file
-			fout = open(results_directory+'/%.6f_spec_extended.txt'%mj, 'w')
-			fout.write('#wls\tflux\tfluxerr\n')
-			for w,f,ferr in zip(ext_spec_wls, ext_spec_flx,ext_spec_flx_err):
-				fout.write('%E\t%E\t%E\n'%(w,f,ferr))
-			fout.close()
+			plt.plot(wls_lin, flx_lin + (a + 1) * scale, lw=1, color='b')
+			plt.plot(ext_spec_wls, ext_spec_flx + (a + 1) * scale, lw=0.6, color='k', linestyle='--')
+			plt.fill_between(
+				ext_spec_wls,
+				(ext_spec_flx - ext_spec_flx_err) + (a + 1) * scale,
+				(ext_spec_flx + ext_spec_flx_err) + (a + 1) * scale,
+				alpha=0.3, facecolor='k',
+			)
 
-		elif (not phases_close(mj, list_mjds_spec))&(GP2DIM_Class.mode=='extrapolate_spectra'):
-			wls_lin_out = 10**wls
-			plt.plot(wls_lin_out, smooth_ext_spec+(a+1)*scale, label='Extrapolated %i'%(mj-offset2), lw=0.8, color='r')
-			plt.fill_between(wls_lin_out, (smooth_ext_spec-smooth_ext_spec_err)+(a+1)*scale,
-							 (smooth_ext_spec+smooth_ext_spec_err)+(a+1)*scale,
-							 alpha=0.3, facecolor='r')
-			plt.text(wls_lin_out[0], (a+1)*scale, '%.6f'%(mj-min_mjd))
-			fout = open(results_directory+'/%.6f_spec_extended_FL.txt'%mj, 'w')
-			fout.write('#wls\tflux\tfluxerr\n')
-			for w,f,ferr in zip(wls_lin_out, smooth_ext_spec, smooth_ext_spec_err):
-				fout.write('%E\t%E\t%E\n'%(w,f,ferr))
-			fout.close()
+			plt.text(ext_spec_wls[0], (a + 1) * scale, '%.6f' % (mj - min_mjd))
+
+			_write_spec_txt(dir_spliced, mj, '_spec_extended.txt', ext_spec_wls, ext_spec_flx, ext_spec_flx_err)
+			_write_spec_txt(dir_full_gp, mj, '_spec_extended.txt', wls_lin_out_full, flx_full_gp, err_full_gp)
+
+			if dir_diag is not None and bool(getattr(GP2DIM_Class, "save_gp_spliced_diagnostic", True)):
+				try:
+					fig_d, ax_d = plt.subplots(figsize=(9, 3))
+					ax_d.plot(wls_lin_out_full, flx_full_gp, '-', color='tab:orange', lw=1.2, label='GP mean')
+					ax_d.plot(ext_spec_wls, ext_spec_flx, '-', color='tab:blue', lw=0.8, label='spliced (UV/GP–IR/GP)')
+					ax_d.set_xlabel('Wavelength (Å)')
+					ax_d.set_ylabel('Linear flux')
+					ax_d.set_title('%s log10 phase=%.6f' % (GP2DIM_Class.snname, float(mj)))
+					ax_d.legend(loc='best', fontsize=8)
+					fig_d.savefig(
+						os.path.join(dir_diag, 'gp_vs_spliced_%.6f.pdf' % float(mj)),
+						bbox_inches='tight',
+					)
+					plt.close(fig_d)
+				except Exception as _exc:
+					print('[GP2dim] diagnostic plot skipped:', _exc, flush=True)
+
+		elif (not phases_close(mj, list_mjds_spec)) & (GP2DIM_Class.mode == 'extrapolate_spectra'):
+			wls_lin_out = 10 ** wls
+			plt.plot(wls_lin_out, smooth_ext_spec + (a + 1) * scale, label='Extrapolated %i' % (mj - offset2), lw=0.8, color='r')
+			plt.fill_between(
+				wls_lin_out,
+				(smooth_ext_spec - smooth_ext_spec_err) + (a + 1) * scale,
+				(smooth_ext_spec + smooth_ext_spec_err) + (a + 1) * scale,
+				alpha=0.3, facecolor='r',
+			)
+			plt.text(wls_lin_out[0], (a + 1) * scale, '%.6f' % (mj - min_mjd))
+			_write_spec_txt(dir_spliced, mj, '_spec_extended_FL.txt', wls_lin_out, smooth_ext_spec, smooth_ext_spec_err)
+			_write_spec_txt(dir_full_gp, mj, '_spec_extended_FL.txt', wls_lin_out, smooth_ext_spec, smooth_ext_spec_err)
 
 	plt.xlabel('Wavelength')
 	plt.ylabel('Calibrated Flux + offset')
 	plt.title(GP2DIM_Class.snname)
-	#fig.savefig(save_plot_path+'/extended_spec_plusFL.pdf', bbox_inches='tight')
 	plt.show()
 	plt.close(fig)

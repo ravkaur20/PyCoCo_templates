@@ -57,7 +57,12 @@ class TestRimangleFinalPath(unittest.TestCase):
         l = "0.537315_spec_extended.txt"
         p = _path_FINAL_hostcorr(FINAL_BASE, OUT, l)
         self.assertTrue(os.path.isfile(p), p)
-        self.assertIn("57985.974001_FINAL_spec", p)
+        self.assertIn("FINAL_spec", p)
+        # May resolve to stem-named file (0.537315_FINAL_spec.txt) or legacy calendar MJD name.
+        self.assertTrue(
+            ("57985.974001_FINAL_spec" in p) or ("0.537315_FINAL_spec" in p),
+            p,
+        )
 
 
 if __name__ == "__main__":

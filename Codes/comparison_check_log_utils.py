@@ -20,6 +20,7 @@ __all__ = [
     "t0_fix_from_late_lc",
     "stem_to_spec_mjd",
     "resolve_final_directory",
+    "twodim_final_branch",
     "read_final_spectrum_linear",
     "deduplicate_wavelength_flux",
     "create_lookup_table",
@@ -192,16 +193,30 @@ def resolve_final_directory(
     coco_path: str,
     snname: str,
     final_variant: str,
+    *,
+    twodim_branch: str | None = None,
+    extension_type: str = "2dim",
 ) -> str:
     """
     ``final_variant``:
-      "" or "default" -> ``Outputs/<sn>/FINAL_spectra_2dim``
-      else -> ``.../FINAL_spectra_2dim/<final_variant>`` (e.g. ``as_observed``, ``HostNotCorr``).
+      "" or "default" -> base FINAL directory (optionally under ``twodim_branch``)
+      else -> that subdirectory (e.g. ``as_observed``).
+
+    ``twodim_branch``:
+      e.g. ``"extend/spliced"`` -> ``Outputs/<sn>/FINAL_spectra_2dim/extend/spliced``.
+      ``None`` keeps the legacy flat layout ``FINAL_spectra_2dim/<variant>``.
     """
-    base = os.path.join(coco_path, "Outputs", snname, "FINAL_spectra_2dim")
+    base = os.path.join(coco_path, "Outputs", snname, "FINAL_spectra_%s" % extension_type)
+    if twodim_branch:
+        base = os.path.join(base, *str(twodim_branch).replace("\\", "/").split("/"))
     if not final_variant or final_variant in ("default",):
         return base
     return os.path.join(base, final_variant)
+
+
+def twodim_final_branch(mode_short: str, product: str) -> str:
+    """Path segment ``<mode_short>/<product>`` for ``resolve_final_directory(..., twodim_branch=…)``."""
+    return "%s/%s" % (mode_short.replace("\\", "/").strip("/"), product.replace("\\", "/").strip("/"))
 
 
 def read_final_spectrum_linear(
