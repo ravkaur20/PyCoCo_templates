@@ -32,54 +32,130 @@ mycmap.set_under('r')
 #               'Ks':  'brown','K':  'brown', 'swift_UVW1':'indigo', 'swift_UVW2':'darkblue',
 #                'swift_UVM2':'darkmagenta','swift_U':'plum','swift_V':'teal','swift_B':'powderblue'}
 
+# color_dict = {
+#     'RetroCam_J': 'black',
+#     'Swope_i': 'indianred',
+#     'ACS_WFC_F625W': 'orange',
+#     'UVOT_U': 'teal',
+#     'DECam_i': 'orangered',
+#     'RetroCam_H': 'maroon',
+#     'DECam_z': 'darkslategray',
+#     'DECam_Y': 'goldenrod',
+#     'RetroCam_Y': 'salmon',
+#     'FourStar_H': 'darkred',
+#     'EFOSC2_r': 'tomato',
+#     'IMACS_V2': 'mediumseagreen',
+#     'Sinistro_z': 'sienna',
+#     'EFOSC2_g': 'darkcyan',
+#     'FourStar_J': 'black',
+#     'IMACS_V1': 'mediumblue',
+#     'ACS_WFC_F475W': 'dodgerblue',
+#     'IMACS_r': 'darkred',
+#     'skymapper_g': 'forestgreen',
+#     'EFOSC2_U': 'blue',
+#     'LRIS_I': 'mediumvioletred',
+#     'Sinistro_i': 'firebrick',
+#     'skymapper_r': 'deeppink',
+#     'EFOSC2_V': 'limegreen',
+#     'SOFI_H': 'firebrick',
+#     'Sinistro_g': 'darkgreen',
+#     'LRIS_g': 'seagreen',
+#     'skymapper_i': 'slateblue',
+#     'WFC3_UVIS1_F336W': 'turquoise',
+#     'Sinistro_r': 'crimson',
+#     'WFC3_IR_F160W': 'purple',
+#     'FourStar_Ks': 'brown',
+#     'Sinistro_V': 'mediumaquamarine',
+#     'Sinistro_w': 'gray',
+#     'FourStar_J1': 'dimgray',
+#     'SOFI_Ks': 'saddlebrown',
+#     'EFOSC2_i': 'indigo',
+#     'DECam_u': 'navy',
+#     'Swope_V': 'green',
+#     'Swope_B': 'royalblue',
+#     'ACS_WFC_F850W': 'peru',
+#     'DECam_r': 'darkorange',
+#     'WFC3_IR_F110W': 'darkorchid',
+#     'Swope_g': 'darkseagreen',
+#     'Swope_r': 'red',
+#     'ACS_WFC_F775W': 'chocolate',
+#     'DECam_g': 'mediumspringgreen'
+# }
+
 color_dict = {
-    'RetroCam_J': 'black',
+    # Existing matches from your example
     'Swope_i': 'indianred',
-    'ACS_WFC_F625W': 'orange',
-    'UVOT_U': 'teal',
+    'FourStar_H': 'darkred',
+    'FourStar_J': 'black',
     'DECam_i': 'orangered',
-    'RetroCam_H': 'maroon',
     'DECam_z': 'darkslategray',
     'DECam_Y': 'goldenrod',
-    'RetroCam_Y': 'salmon',
-    'FourStar_H': 'darkred',
-    'EFOSC2_r': 'tomato',
-    'IMACS_V2': 'mediumseagreen',
-    'Sinistro_z': 'sienna',
-    'EFOSC2_g': 'darkcyan',
-    'FourStar_J': 'black',
-    'IMACS_V1': 'mediumblue',
-    'ACS_WFC_F475W': 'dodgerblue',
-    'IMACS_r': 'darkred',
-    'skymapper_g': 'forestgreen',
-    'EFOSC2_U': 'blue',
-    'LRIS_I': 'mediumvioletred',
-    'Sinistro_i': 'firebrick',
-    'skymapper_r': 'deeppink',
-    'EFOSC2_V': 'limegreen',
-    'SOFI_H': 'firebrick',
-    'Sinistro_g': 'darkgreen',
-    'LRIS_g': 'seagreen',
-    'skymapper_i': 'slateblue',
-    'WFC3_UVIS1_F336W': 'turquoise',
-    'Sinistro_r': 'crimson',
-    'WFC3_IR_F160W': 'purple',
     'FourStar_Ks': 'brown',
-    'Sinistro_V': 'mediumaquamarine',
-    'Sinistro_w': 'gray',
-    'FourStar_J1': 'dimgray',
-    'SOFI_Ks': 'saddlebrown',
-    'EFOSC2_i': 'indigo',
+    'UVOT_U': 'teal',
+    'Skymapper_i': 'slateblue',
+    'Sinistro_g': 'darkgreen',
+    'Sinistro_r': 'crimson',
+    'Skymapper_r': 'deeppink',
+    'Skymapper_g': 'forestgreen',
+    'EFOSC2_V': 'limegreen',
+    'Sinistro_i': 'firebrick',
+    'DECam_r': 'darkorange',
+    'DECam_g': 'mediumspringgreen',
     'DECam_u': 'navy',
     'Swope_V': 'green',
+    'FourStar_J1': 'dimgray',
     'Swope_B': 'royalblue',
-    'ACS_WFC_F850W': 'peru',
-    'DECam_r': 'darkorange',
-    'WFC3_IR_F110W': 'darkorchid',
-    'Swope_g': 'darkseagreen',
     'Swope_r': 'red',
-    'ACS_WFC_F775W': 'chocolate',
-    'DECam_g': 'mediumspringgreen'
+    'Swope_g': 'darkseagreen',
+    'EFOSC2_U': 'blue',
+    'Sinistro_V': 'mediumaquamarine',
+    'Sinistro_z': 'sienna',
+    'IMACS_r': 'darkred',
+    'LRIS_I': 'mediumvioletred',
+    'SOFI_H': 'firebrick',
+    'SOFI_Ks': 'saddlebrown',
+
+    # New assignments (color-coded by band)
+    'VISTA_Ks': 'saddlebrown',
+    'VISTA_J': 'dimgray',
+    'VISTA_Y': 'salmon',
+    'FLAMINGOS-2_Ks': 'sienna',
+    'UVOT_M2': 'darkviolet',
+    'UVOT_W1': 'purple',
+    'UVOT_W2': 'indigo',
+    'HSC_z': 'darkslategray',
+    'GFC_i': 'firebrick',
+    'GFC_y': 'goldenrod',
+    'GFC_z': 'maroon',
+    'GFC_r': 'tomato',
+    'SIRIUS_H': 'darkred',
+    'SIRIUS_J': 'black',
+    'SIRIUS_Ks': 'brown',
+    'T80Cam_g': 'seagreen',
+    'GROND_H': 'maroon',
+    'GROND_J': 'dimgray',
+    'GROND_K': 'saddlebrown',
+    'GROND_g': 'mediumseagreen',
+    'GROND_i': 'orangered',
+    'GROND_r': 'crimson',
+    'GROND_z': 'darkslategray',
+    'DECam_Y': 'goldenrod',
+    'FLAMINGOS-2_H': 'firebrick',
+    'IMACS_i': 'orangered',
+    'FLAMINGOS-2_J': 'black',
+    'UVOT_B': 'dodgerblue',
+    'GMOS_g': 'green',
+    'GMOS_i': 'indianred',
+    'GMOS_r': 'red',
+    'GMOS_z': 'darkslategray',
+    'FORS2_R': 'crimson',
+    'VIMOS_z': 'maroon',
+    'FORS2_I': 'mediumvioletred',
+    'FORS2_B': 'blue',
+    'FORS2_V': 'limegreen',
+    'ANDICAM_K': 'brown',
+    'MOIRCS_Ks': 'sienna',
+    'HAWKI_Ks': 'brown'
 }
 
 def prepare_grid(snname, GP2DIM_Class):
@@ -139,6 +215,13 @@ def transform2LOG_reshape(GP2DIM_Class, raw_numbers, raw_numbers_err,  off_xa, o
 	
 	x1_data = resh_wls[NOT_Isnan]
 	x2_data = resh_mjd[NOT_Isnan]
+
+	# ---> NEW: Transform inputs to log10 space
+	#t0 = min(x2_data) - 0.1 # Reference time to prevent log(0)
+	t0 = 57982.528
+	x1_data = np.log10(x1_data)
+	x2_data = np.log10(x2_data - t0)
+	# <--- End NEW
 	
 	x_tuble_nonan = np.array([i for i in zip(x1_data, x2_data)])
 	y_data_nonan = np.copy(data_scaled[NOT_Isnan])
@@ -152,37 +235,78 @@ def transform2LOG_reshape(GP2DIM_Class, raw_numbers, raw_numbers_err,  off_xa, o
 	x1_data_norm = (x1_data/norm1)
 	x2_data_norm = (x2_data-offset2)/norm2
 	
+	# GP2DIM_Class.grid_norm_info = {'offset':offset, 'scale_factor':scale_factor,
+	# 								 'norm1':norm1, 'norm2':norm2, 'offset2':offset2}
+	# ---> NEW: Add t0 to grid_norm_info
 	GP2DIM_Class.grid_norm_info = {'offset':offset, 'scale_factor':scale_factor,
-									 'norm1':norm1, 'norm2':norm2, 'offset2':offset2}
+									 'norm1':norm1, 'norm2':norm2, 'offset2':offset2, 't0':t0}
 	return (y_data_nonan, y_data_nonan_err, x1_data_norm, x2_data_norm)
 
 
+# def make_plots(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2_data_norm):	
+# 	fig=plt.figure(1, figsize=(12,3))
+
+# 	plt.subplot(121)
+# 	plt.xlabel('MJD')
+# 	plt.ylabel('wls')
+# 	plt.title('Training Data')
+	
+# 	plt.grid(True)
+	
+# 	plt.scatter(GP2DIM_Class.grid_norm_info['norm2']*x2_data_norm, 
+# 		GP2DIM_Class.grid_norm_info['norm1']*x1_data_norm, marker='s', s=9,c=y_data_nonan)
+# 	plt.colorbar(label='Flux rescaled')
+# 	#plt.savefig('gaussian_processes_2d_training_data.png', bbox_inches='tight')
+	
+# 	plt.subplot(122)
+# 	plt.xlabel('Time (MJDs)')
+# 	plt.ylabel('Wavelength')
+# 	#plt.xlim(x1_min,x1_max)
+# 	#plt.ylim(x2_min,x2_max)
+# 	plt.title('Training Data ERRORS')
+	
+# 	plt.grid(True)
+		
+# 	plt.scatter(GP2DIM_Class.grid_norm_info['norm2']*x2_data_norm, 
+# 		GP2DIM_Class.grid_norm_info['norm1']*x1_data_norm,  marker='s', s=9, c=(y_data_nonan_err))
+# 	plt.colorbar(label='Err Flux rescaled')
+# 	plt.subplots_adjust(wspace=0.2)
+# 	plt.show()
+# 	fig.savefig(GP2DIM_Class.save_plot_path+'/data_for2d_interpolation.pdf', bbox_inches='tight')
+# 	plt.close(fig)
+
 def make_plots(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2_data_norm):	
+	norm1 = GP2DIM_Class.grid_norm_info['norm1']
+	norm2 = GP2DIM_Class.grid_norm_info['norm2']
+	offset2 = GP2DIM_Class.grid_norm_info['offset2']
+
+	# ---> NEW: Un-log the coordinates for plotting
+	linear_wls = 10**(norm1 * x1_data_norm)
+	linear_time = 10**(norm2 * x2_data_norm + offset2) 
+	# <--- End NEW
+
 	fig=plt.figure(1, figsize=(12,3))
 
 	plt.subplot(121)
-	plt.xlabel('MJD')
-	plt.ylabel('wls')
+	plt.xlabel('Days since explosion')
+	plt.ylabel('Wavelength (Angstroms)')
 	plt.title('Training Data')
 	
 	plt.grid(True)
 	
-	plt.scatter(GP2DIM_Class.grid_norm_info['norm2']*x2_data_norm, 
-		GP2DIM_Class.grid_norm_info['norm1']*x1_data_norm, marker='s', s=9,c=y_data_nonan)
+	# ---> CHANGED: Use the linear variables
+	plt.scatter(linear_time, linear_wls, marker='s', s=9, c=y_data_nonan)
 	plt.colorbar(label='Flux rescaled')
-	#plt.savefig('gaussian_processes_2d_training_data.png', bbox_inches='tight')
 	
 	plt.subplot(122)
-	plt.xlabel('Time (MJDs)')
-	plt.ylabel('Wavelength')
-	#plt.xlim(x1_min,x1_max)
-	#plt.ylim(x2_min,x2_max)
+	plt.xlabel('Days since explosion')
+	plt.ylabel('Wavelength (Angstroms)')
 	plt.title('Training Data ERRORS')
 	
 	plt.grid(True)
 		
-	plt.scatter(GP2DIM_Class.grid_norm_info['norm2']*x2_data_norm, 
-		GP2DIM_Class.grid_norm_info['norm1']*x1_data_norm,  marker='s', s=9, c=(y_data_nonan_err))
+	# ---> CHANGED: Use the linear variables
+	plt.scatter(linear_time, linear_wls, marker='s', s=9, c=(y_data_nonan_err))
 	plt.colorbar(label='Err Flux rescaled')
 	plt.subplots_adjust(wspace=0.2)
 	plt.show()
@@ -195,6 +319,7 @@ def setPRIOR(GP2DIM_Class, type_=None, PRIOR_file=None, PRIOR_folder=None):
 	offset = GP2DIM_Class.grid_norm_info['offset']
 	offset2 = GP2DIM_Class.grid_norm_info['offset2']
 	scale_factor = GP2DIM_Class.grid_norm_info['scale_factor']
+	t0 = GP2DIM_Class.grid_norm_info['t0'] # <--- NEW
 	
 	if not PRIOR_file:
 		if type_ in ['II', 'IIn', 'IIP', 'IIL']:
@@ -205,7 +330,9 @@ def setPRIOR(GP2DIM_Class, type_=None, PRIOR_file=None, PRIOR_folder=None):
 	wls_prior, phase_prior, color_prior = np.genfromtxt(PRIOR_folder+PRIOR_file, delimiter=',', unpack=True)
 	print("Loaded prior grid. Any NaN in color_prior:", np.any(np.isnan(color_prior)))
 	print("color_prior min/max:", np.nanmin(color_prior), np.nanmax(color_prior))
-	wls_prior_norm = wls_prior/norm1
+	#wls_prior_norm = wls_prior/norm1
+	# ---> CHANGED: Log the prior wavelength
+	wls_prior_norm = np.log10(wls_prior)/norm1
 	
 	#DATALC_PATH+'/results_template/%s/fitted_phot_%s.dat'%(snname,snname)
 
@@ -219,7 +346,9 @@ def setPRIOR(GP2DIM_Class, type_=None, PRIOR_file=None, PRIOR_folder=None):
 	#if 'Bessell_B' in original_fit.columns: BVflux = original_fit['Bessell_V'].values + original_fit['Bessell_B'].values
 	#else: BVflux = original_fit['Bessell_V'].values + original_fit['swift_B'].values
 	peak = (original_fit.MJD.values[np.argmax(BVflux[~np.isnan(BVflux)])])
-	phase_prior_norm = ((phase_prior+int(peak))-offset2)/norm2
+	#phase_prior_norm = ((phase_prior+int(peak))-offset2)/norm2
+	# ---> CHANGED: Log the prior time
+	phase_prior_norm = (np.log10(phase_prior + int(peak) - t0) - offset2)/norm2
 	
 	reshaped_color_prior = color_prior.reshape(len(np.unique(wls_prior)),len(np.unique(phase_prior)))
 	print("reshaped_color_prior shape:", reshaped_color_prior.shape)
@@ -240,6 +369,14 @@ def setPRIOR(GP2DIM_Class, type_=None, PRIOR_file=None, PRIOR_folder=None):
 	print("flux_prior_transform min/max:", np.nanmin(flux_prior_transform), np.nanmax(flux_prior_transform))
 	points = np.array([tup for tup in zip(wls_prior_norm, phase_prior_norm)])
 	values = (flux_prior_transform).reshape(len(np.unique(phase_prior))*len(np.unique(wls_prior)))
+	
+	# ---> NEW: Filter out any NaNs or Infs caused by log(negative times) or log(zero flux)
+	valid_mask = np.isfinite(points[:, 0]) & np.isfinite(points[:, 1]) & np.isfinite(values)
+	
+	points = points[valid_mask]
+	values = values[valid_mask]
+	# <--- End NEW
+
 	return points, values
 
 def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2_data_norm,\
@@ -284,7 +421,7 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 	X = np.vstack((x1_data_norm, x2_data_norm)).T
 	y = y_data_nonan
 	yerr = y_data_nonan_err
-	
+	# original way
 	kernel_mix = Matern32Kernel([kernel_wls_scale, kernel_time_scale], ndim=2)
 	kernel2dim = np.var(y)*kernel_mix #+ 0.3*np.var(y)*kernel2*kernel1
 	
@@ -292,6 +429,18 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 	else:  gp = george.GP(kernel2dim)
 
 	gp.compute(X, yerr)
+
+	# -------- MODIFIED --------
+	# kernel_mix = Matern32Kernel([kernel_wls_scale, kernel_time_scale], ndim=2)
+	# kernel2dim = np.var(y)*kernel_mix 
+	
+	# # Add the HODLRSolver as an argument
+	# if prior: 
+	# 	gp = george.GP(kernel2dim, mean=mean_model, solver=george.HODLRSolver, white_noise=np.log(1e-3))
+	# else:  
+	# 	gp = george.GP(kernel2dim, solver=george.HODLRSolver, white_noise=np.log(1e-3))
+
+	# gp.compute(X, yerr)
 		
 	# wls_normed_range = np.sort(np.concatenate(( np.arange(1600.,3000., 40),
 	# 										  np.arange(3000.,9000., 10),
@@ -299,9 +448,23 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 	#RAV added this
 	wls_min = np.min(GP2DIM_Class.grids[0])
 	wls_max = np.max(GP2DIM_Class.grids[0])
-	wls_normed_range = np.arange(wls_min, wls_max + 1, 40) / GP2DIM_Class.grid_norm_info['norm1']
+	# wls_normed_range = np.arange(wls_min, wls_max + 1, 40) / GP2DIM_Class.grid_norm_info['norm1']
+	# NEW -> E.g., 150 points spaced evenly in log-wavelength
+	wls_log_range = np.linspace(np.log10(wls_min), np.log10(wls_max), 150)
+	wls_normed_range = wls_log_range / GP2DIM_Class.grid_norm_info['norm1']
 
-	#mu_fill_resh = []
+	# mu_fill_resh = np.empty((0, 3))
+	# std_fill_resh = []
+	
+	# slot_size = 3
+	# tot_iteration = int(len(extrap_mjds)/slot_size+1)
+
+	# for j in range(int(len(extrap_mjds)/slot_size+1)):
+	# 	mjd_normed_range = ((extrap_mjds[j*slot_size:(j+1)*slot_size])-GP2DIM_Class.grid_norm_info['offset2'])/GP2DIM_Class.grid_norm_info['norm2']
+
+	# ---> NEW: get t0
+	t0 = GP2DIM_Class.grid_norm_info['t0']
+
 	mu_fill_resh = np.empty((0, 3))
 	std_fill_resh = []
 	
@@ -309,7 +472,9 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 	tot_iteration = int(len(extrap_mjds)/slot_size+1)
 
 	for j in range(int(len(extrap_mjds)/slot_size+1)):
-		mjd_normed_range = ((extrap_mjds[j*slot_size:(j+1)*slot_size])-GP2DIM_Class.grid_norm_info['offset2'])/GP2DIM_Class.grid_norm_info['norm2']
+		# ---> CHANGED: Log the time grid for prediction
+		mjds_chunk = extrap_mjds[j*slot_size:(j+1)*slot_size]
+		mjd_normed_range = (np.log10(mjds_chunk - t0) - GP2DIM_Class.grid_norm_info['offset2'])/GP2DIM_Class.grid_norm_info['norm2']
 		x1_fill = []#np.random.permutation(np.linspace(0,1., N))
 		x2_fill = []#np.random.permutation(np.linspace(0,1., N))
 		for i in wls_normed_range:
@@ -358,7 +523,9 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 	mu_fill = mu_fill_resh.reshape(len(wls_normed_range)*len(extrap_mjds))
 	std_fill = std_fill_resh.reshape(len(wls_normed_range)*len(extrap_mjds))
 
-	mjd_normed_range = (extrap_mjds-GP2DIM_Class.grid_norm_info['offset2'])/GP2DIM_Class.grid_norm_info['norm2']
+	#mjd_normed_range = (extrap_mjds-GP2DIM_Class.grid_norm_info['offset2'])/GP2DIM_Class.grid_norm_info['norm2']
+	# ---> CHANGED: Log the final time grid
+	mjd_normed_range = (np.log10(extrap_mjds - t0) - GP2DIM_Class.grid_norm_info['offset2'])/GP2DIM_Class.grid_norm_info['norm2']
 	
 	x1_fill = []#np.random.permutation(np.linspace(0,1., N))
 	x2_fill = []#np.random.permutation(np.linspace(0,1., N))
@@ -383,6 +550,7 @@ def make_results_plots(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill):
 	offset = GP2DIM_Class.grid_norm_info['offset']
 	offset2 = GP2DIM_Class.grid_norm_info['offset2']
 	scale_factor = GP2DIM_Class.grid_norm_info['scale_factor']
+	t0 = GP2DIM_Class.grid_norm_info['t0'] # <--- NEW
 
 	#plt.scatter(norm2*x2_fill, norm1*x1_fill, marker='.', c=mu_fill, alpha=1., 
 	#		vmin=0., cmap = mycmap)
@@ -400,32 +568,55 @@ def make_results_plots(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill):
 	fig = plt.figure(figsize=(10,6))
 	plt.subplot(221)
 	plt.title('from %.1f to %.1f'%(min(fit_wls[:int(len_wls/4)]*norm1),max(fit_wls[:int(len_wls/4)]*norm1)))
+	# for i in fit_wls[:int(len_wls/4)]:
+	# 	mask = x1_fill==i
+	# 	plt.plot((x2_fill[mask])*norm2+offset2, np.exp(mu_fill[mask]*scale_factor + offset), 
+	# 			 lw=3, color=next(color), label='%i'%(i*norm1))
 	for i in fit_wls[:int(len_wls/4)]:
 		mask = x1_fill==i
-		plt.plot((x2_fill[mask])*norm2+offset2, np.exp(mu_fill[mask]*scale_factor + offset), 
-				 lw=3, color=next(color), label='%i'%(i*norm1))
+		# ---> CHANGED: Convert x2 (time) back to linear MJD, and label back to linear Angstroms
+		linear_time = 10**((x2_fill[mask])*norm2+offset2) + t0
+		linear_wls_label = int(10**(i*norm1))
+		
+		plt.plot(linear_time, np.exp(mu_fill[mask]*scale_factor + offset), 
+				 lw=3, color=next(color), label='%i'%(linear_wls_label))
 	plt.yscale('log')
 	plt.subplot(222)
 	plt.title('from %.1f to %.1f'%(min(fit_wls[int(len_wls/4):2*int(len_wls/4)]*norm1),max(fit_wls[int(len_wls/4):2*int(len_wls/4)]*norm1)))
 	for i in fit_wls[int(len_wls/4):2*int(len_wls/4)]:
 		mask = x1_fill==i
-		plt.plot((x2_fill[mask])*norm2+offset2, np.exp(mu_fill[mask]*scale_factor + offset), 
-				 lw=3, color=next(color), label='%i'%(i*norm1))
+		# plt.plot((x2_fill[mask])*norm2+offset2, np.exp(mu_fill[mask]*scale_factor + offset), 
+		# 		 lw=3, color=next(color), label='%i'%(i*norm1))
+		linear_time = 10**((x2_fill[mask])*norm2+offset2) + t0
+		linear_wls_label = int(10**(i*norm1))
+		
+		plt.plot(linear_time, np.exp(mu_fill[mask]*scale_factor + offset), 
+				 lw=3, color=next(color), label='%i'%(linear_wls_label))
 	plt.yscale('log')
 	plt.subplot(223)
 	plt.title('from %.1f to %.1f'%(min(fit_wls[2*int(len_wls/4):3*int(len_wls/4)]*norm1),max(fit_wls[2*int(len_wls/4):3*int(len_wls/4)]*norm1)))
 	for i in fit_wls[2*int(len_wls/4):3*int(len_wls/4)]:
 		mask = x1_fill==i
-		plt.plot((x2_fill[mask])*norm2+offset2, np.exp(mu_fill[mask]*scale_factor + offset), 
-				 lw=3, color=next(color), label='%i'%(i*norm1))
+		# plt.plot((x2_fill[mask])*norm2+offset2, np.exp(mu_fill[mask]*scale_factor + offset), 
+		# 		 lw=3, color=next(color), label='%i'%(i*norm1))
+		linear_time = 10**((x2_fill[mask])*norm2+offset2) + t0
+		linear_wls_label = int(10**(i*norm1))
+		
+		plt.plot(linear_time, np.exp(mu_fill[mask]*scale_factor + offset), 
+				 lw=3, color=next(color), label='%i'%(linear_wls_label))
 	plt.yscale('log')
 	plt.subplot(224)
 	plt.title('from %.1f to %.1f'%(min(fit_wls[3*int(len_wls/4):int(len_wls)]*norm1),max(fit_wls[3*int(len_wls/4):int(len_wls)]*norm1)))
 	for i in fit_wls[3*int(len_wls/4):int(len_wls)]:
 	
 		mask = x1_fill==i
-		plt.plot((x2_fill[mask])*norm2+offset2, np.exp(mu_fill[mask]*scale_factor + offset), 
-				 lw=3, color=next(color), label='%i'%(i*norm1))
+		# plt.plot((x2_fill[mask])*norm2+offset2, np.exp(mu_fill[mask]*scale_factor + offset), 
+		# 		 lw=3, color=next(color), label='%i'%(i*norm1))
+		linear_time = 10**((x2_fill[mask])*norm2+offset2) + t0
+		linear_wls_label = int(10**(i*norm1))
+		
+		plt.plot(linear_time, np.exp(mu_fill[mask]*scale_factor + offset), 
+				 lw=3, color=next(color), label='%i'%(linear_wls_label))
 	plt.yscale('log')
 	plt.show()
 
@@ -437,6 +628,7 @@ def transform_back_andPlot(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill, y_
 	offset = GP2DIM_Class.grid_norm_info['offset']
 	offset2 = GP2DIM_Class.grid_norm_info['offset2']
 	scale_factor = GP2DIM_Class.grid_norm_info['scale_factor']
+	t0 = GP2DIM_Class.grid_norm_info['t0'] # <--- NEW
 
 	#if LOG:
 	mu_fill_conv = np.exp(mu_fill*scale_factor + offset)
@@ -448,26 +640,49 @@ def transform_back_andPlot(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill, y_
 	#	std_fill_conv = np.abs( scale_factor*std_fill )
 	#
 	#	y_data_conv =(y_data_nonan*scale_factor + offset)
-		
+
+	# ---> NEW: Un-log the 2D grids for the scatter plot
+	linear_time_grid = 10**(norm2*x2_fill + offset2) + t0
+	linear_wls_grid = 10**(norm1*x1_fill)
+
 	fig = plt.figure(1, figsize=(10,3))
 	plt.subplot(121)
-	plt.scatter(norm2*x2_fill, norm1*x1_fill, marker='s', s=10,  c=mu_fill_conv, alpha=1., 
+	
+	# ---> CHANGED: Pass the linear grids
+	plt.scatter(linear_time_grid, linear_wls_grid, marker='s', s=10,  c=mu_fill_conv, alpha=1., 
 				vmin=0., cmap = mycmap)
-	#plt.scatter(x2_data_norm, x1_data_norm, marker='s', c=y_data)
-	#plt.scatter(x2_data_norm, x1_data_norm, marker='s', c=y_data)
-	plt.xlabel('MJD')
-	plt.ylabel('wls')
+	plt.xlabel('Days since explosion')
+	plt.ylabel('Wavelength (Å)')
 	plt.colorbar()
 	
 	plt.subplot(122)
-	plt.scatter(norm2*x2_fill, norm1*x1_fill, marker='s', s=10,  c=std_fill_conv, alpha=1., 
+	# ---> CHANGED: Pass the linear grids
+	plt.scatter(linear_time_grid, linear_wls_grid, marker='s', s=10,  c=std_fill_conv, alpha=1., 
 				vmin=0., cmap = mycmap)
-	#plt.scatter(x2_data_norm, x1_data_norm, marker='s', c=y_data)
-	#plt.scatter(x2_data_norm, x1_data_norm, marker='s', c=y_data)
-	plt.xlabel('MJD')
-	plt.ylabel('wls')
+	plt.xlabel('Days since explosion')
+	plt.ylabel('Wavelength (Å)')
 	plt.colorbar()
 	plt.show()
+		
+	# fig = plt.figure(1, figsize=(10,3))
+	# plt.subplot(121)
+	# plt.scatter(norm2*x2_fill, norm1*x1_fill, marker='s', s=10,  c=mu_fill_conv, alpha=1., 
+	# 			vmin=0., cmap = mycmap)
+	# #plt.scatter(x2_data_norm, x1_data_norm, marker='s', c=y_data)
+	# #plt.scatter(x2_data_norm, x1_data_norm, marker='s', c=y_data)
+	# plt.xlabel('MJD')
+	# plt.ylabel('wls')
+	# plt.colorbar()
+	
+	# plt.subplot(122)
+	# plt.scatter(norm2*x2_fill, norm1*x1_fill, marker='s', s=10,  c=std_fill_conv, alpha=1., 
+	# 			vmin=0., cmap = mycmap)
+	# #plt.scatter(x2_data_norm, x1_data_norm, marker='s', c=y_data)
+	# #plt.scatter(x2_data_norm, x1_data_norm, marker='s', c=y_data)
+	# plt.xlabel('MJD')
+	# plt.ylabel('wls')
+	# plt.colorbar()
+	# plt.show()
 	fig.savefig(GP2DIM_Class.save_plot_path+'/2d_surface.png', bbox_inches='tight')
 	plt.close(fig)
 	
@@ -505,14 +720,30 @@ def transform_back_andPlot(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill, y_
 	spec_mjd_list = GP2DIM_Class.get_spec_mjd()
 	scale = (max_val-med_val)/5.
 	a=0
+	# for j in range(len(GP2DIM_Class.get_spec_mjd())):
+	# 	mj = spec_mjd_list[j]
+	# 	a +=1
+	# 	mask = x2_fill==(mj-offset2)/norm2
+	# 	plt.plot(x1_fill[mask]*norm1, mu_fill[mask]+(a-1)*scale, 
+	# 			 label='Extrapolated %i'%(mj-offset2), lw=0.8, color='r')
+	# 	plt.fill_between(x1_fill[mask]*norm1, (mu_fill[mask]-std_fill[mask])+(a-1)*scale , 
+	# 			 (mu_fill[mask]+std_fill[mask])+(a-1)*scale , facecolor='r', alpha=0.3)
+	# NEW
 	for j in range(len(GP2DIM_Class.get_spec_mjd())):
 		mj = spec_mjd_list[j]
 		a +=1
-		mask = x2_fill==(mj-offset2)/norm2
-		plt.plot(x1_fill[mask]*norm1, mu_fill[mask]+(a-1)*scale, 
+		# ---> CHANGED: Use np.isclose for float comparison in log space
+		target_log_mjd = (np.log10(mj - t0) - offset2)/norm2
+		mask = np.isclose(x2_fill, target_log_mjd)
+		
+		# ---> CHANGED: Un-log the x-axis (wavelength)
+		linear_wls = 10**(x1_fill[mask]*norm1)
+		
+# ---> CHANGED: Use mu_fill_conv and std_fill_conv instead of mu_fill
+		plt.plot(linear_wls, mu_fill_conv[mask]+(a-1)*scale, 
 				 label='Extrapolated %i'%(mj-offset2), lw=0.8, color='r')
-		plt.fill_between(x1_fill[mask]*norm1, (mu_fill[mask]-std_fill[mask])+(a-1)*scale , 
-				 (mu_fill[mask]+std_fill[mask])+(a-1)*scale , facecolor='r', alpha=0.3)
+		plt.fill_between(linear_wls, (mu_fill_conv[mask]-std_fill_conv[mask])+(a-1)*scale , 
+				 (mu_fill_conv[mask]+std_fill_conv[mask])+(a-1)*scale , facecolor='r', alpha=0.3)
 	
 	#colors_to_replace = plt.cm.viridis(np.linspace(0, 1, len(GP2DIM_Class.avail_filters)))
 	#plt.xlim(1600,11000)
@@ -541,10 +772,14 @@ def transform_back_andPlot(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill, y_
 	for j in range(len(GP2DIM_Class.get_spec_mjd())):
 		mj = spec_mjd_list[j]
 		a +=1
-		mask = x2_fill==(mj-offset2)/norm2
-		plt.plot(x1_fill[mask]*norm1, mu_fill_conv[mask]+(a-1)*scale, 
+		#mask = x2_fill==(mj-offset2)/norm2
+		target_log_mjd = (np.log10(mj - t0) - offset2)/norm2
+		mask = np.isclose(x2_fill, target_log_mjd)
+		linear_wls = 10**(x1_fill[mask]*norm1)
+
+		plt.plot(linear_wls, mu_fill_conv[mask]+(a-1)*scale, 
 				 label='Extrapolated %i'%(mj-offset2), lw=0.8, color='r')
-		plt.fill_between(x1_fill[mask]*norm1, (mu_fill_conv[mask]-std_fill_conv[mask])+(a-1)*scale , 
+		plt.fill_between(linear_wls, (mu_fill_conv[mask]-std_fill_conv[mask])+(a-1)*scale , 
 				 (mu_fill_conv[mask]+std_fill_conv[mask])+(a-1)*scale , facecolor='r', alpha=0.3)
 	a=0	
 	mangled_original_list = GP2DIM_Class.mangledspec_list
@@ -585,6 +820,7 @@ def save_plots_files(GP2DIM_Class, list_mjds_tot, y_data_conv, x1_fill, x2_fill,
 	offset = GP2DIM_Class.grid_norm_info['offset']
 	offset2 = GP2DIM_Class.grid_norm_info['offset2']
 	scale_factor = GP2DIM_Class.grid_norm_info['scale_factor']
+	t0 = GP2DIM_Class.grid_norm_info['t0'] # <--- NEW
 
 	fig = plt.figure(1, figsize=(11,8))
 	
@@ -603,9 +839,15 @@ def save_plots_files(GP2DIM_Class, list_mjds_tot, y_data_conv, x1_fill, x2_fill,
 	min_mjd = min(list_mjds_tot)
 	a=0
 	for j in range(len(list_mjds_tot)):
+		# mj = list_mjds_tot[j]
+		# mask = x2_fill==(mj-offset2)/norm2
+		# wls = x1_fill[mask]*norm1
 		mj = list_mjds_tot[j]
-		mask = x2_fill==(mj-offset2)/norm2
-		wls = x1_fill[mask]*norm1
+		# ---> CHANGED: Match log-time mask and un-log wavelength
+		target_log_mjd = (np.log10(mj - t0) - offset2)/norm2
+		mask = np.isclose(x2_fill, target_log_mjd)
+		
+		wls = 10**(x1_fill[mask]*norm1) # Un-log wavelength for the txt file!
 		smooth_ext_spec = mu_fill_conv[mask]
 		smooth_ext_spec_err = std_fill_conv[mask]
 
