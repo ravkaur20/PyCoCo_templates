@@ -14,6 +14,28 @@ if CODES not in sys.path:
 import comparison_check_log_utils as cc  # noqa: E402
 
 
+def _final_as_observed_dir_with_spectra(coco: str, sn: str) -> str | None:
+    """Resolve a directory containing FINAL ``as_observed`` spectra (legacy or twodim layout)."""
+    legacy = os.path.join(coco, "Outputs", sn, "FINAL_spectra_2dim", "as_observed")
+    branches = (
+        None,
+        cc.twodim_final_branch("extrapolate", "full_gp"),
+        cc.twodim_final_branch("extrapolate", "spliced"),
+        cc.twodim_final_branch("extend", "full_gp"),
+        cc.twodim_final_branch("extend", "spliced"),
+    )
+    for br in branches:
+        if br is None:
+            d = legacy
+        else:
+            d = cc.resolve_final_directory(coco, sn, "as_observed", twodim_branch=br)
+        if not os.path.isdir(d):
+            continue
+        if any(fn.endswith(".txt") for fn in os.listdir(d)):
+            return d
+    return None
+
+
 class TestDeduplicateWavelength(unittest.TestCase):
     def test_merges_exact_duplicate_lambda(self):
         w = np.array([4000.0, 4000.0, 4100.0])
@@ -46,15 +68,67 @@ class TestParseAndStem(unittest.TestCase):
         np.testing.assert_allclose(mjd, 57989.46904913394, rtol=0.0, atol=1e-4)
 
 
+class TestSpectraListAugment(unittest.TestCase):
+    def test_prepend_only_if_later(self):
+        wl = np.linspace(3000, 8000, 50)
+        t0 = 57982.0
+        sl = [(t0 + 1.0, wl.copy(), np.ones_like(wl))]
+        out = cc.augment_spectra_list_explosion_mjd(sl, t0, wl, flux_floor_linear=1e-50)
+        self.assertEqual(len(out), 2)
+        self.assertAlmostEqual(out[0][0], t0)
+
+    def test_dense_axis_monotonic(self):
+        mjd0 = 58000.0
+        st = np.array([58000.1, 58001.0, 58010.0])
+        mag = np.array([20.0, 19.0, 18.0])
+        u, v = cc.dense_plot_axis_log_days(st, mag, mjd0, n_points=32)
+        self.assertEqual(u.shape, v.shape)
+        self.assertGreater(u.size, 2)
+
+    def test_lookup_table_prepend_explosion_adds_row(self):
+        coco = ROOT
+        sn = "AT2017gfo"
+        tdir = tempfile.mkdtemp(prefix="cclog_prepend_")
+        try:
+            for stem, scale in [(0.842480, 1e-17), (-0.078320, 2e-17)]:
+                path = os.path.join(tdir, "%s_FINAL_spec_FL.txt" % stem)
+                wl = np.linspace(4000.0, 8000.0, 20)
+                fl = np.full_like(wl, scale)
+                fe = np.full_like(wl, scale * 0.1)
+                np.savetxt(path, np.column_stack([wl, fl, fe]))
+            lt0, mj0, _w, sl0 = cc.create_lookup_table(
+                tdir,
+                coco,
+                sn,
+                flux_on_disk="linear",
+                wavelength_bins=40,
+            )
+            t_early = float(np.min(mj0)) - 5.0
+            lt1, mj1, _w2, sl1 = cc.create_lookup_table(
+                tdir,
+                coco,
+                sn,
+                flux_on_disk="linear",
+                wavelength_bins=40,
+                prepend_explosion_mjd=t_early,
+                prepend_flux_floor_linear=1e-50,
+            )
+            self.assertEqual(lt1.shape[0], lt0.shape[0] + 1)
+            self.assertAlmostEqual(mj1[0], t_early)
+            self.assertEqual(len(sl1), len(sl0) + 1)
+        finally:
+            for fn in os.listdir(tdir):
+                os.unlink(os.path.join(tdir, fn))
+            os.rmdir(tdir)
+
+
 class TestCreateLookupSmoke(unittest.TestCase):
     def test_real_as_observed_subset(self):
         coco = ROOT
         sn = "AT2017gfo"
-        final_dir = os.path.join(
-            coco, "Outputs", sn, "FINAL_spectra_2dim", "as_observed"
-        )
-        if not os.path.isdir(final_dir):
-            self.skipTest("missing FINAL as_observed directory")
+        final_dir = _final_as_observed_dir_with_spectra(coco, sn)
+        if final_dir is None:
+            self.skipTest("no FINAL as_observed .txt (legacy or twodim layout)")
 
         lt, spec_mjds, wls, slist = cc.create_lookup_table(
             final_dir,

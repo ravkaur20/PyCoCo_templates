@@ -259,7 +259,7 @@
     "Skymapper_g": {
       "min_mjd": 57983.421,
       "max_mjd": 57985.398,
-      "n_obs": 3
+      "n_obs": 2
     },
     "Skymapper_i": {
       "min_mjd": 57983.387,

@@ -153,7 +153,6 @@ MJD,Mag,Mag_err,Flux,Flux_err,band,Instr,FilterSet
 57985.364,18.53,0.13,8.89589122103e-17,1.06514437573e-17,Sinistro_i,Sinistro,GeneralFilters
 57985.367,18.62,0.14,8.18821926476e-17,1.05582796792e-17,Sinistro_i,Sinistro,GeneralFilters
 57985.384,19.34,0.08,6.3744783276e-17,4.69688901759e-18,Skymapper_r,Skymapper,GeneralFilters
-57984.385,20.43,0.11,3.53832653711e-17,3.58481094815e-18,Skymapper_g,Skymapper,GeneralFilters
 57985.385,19.77,0.2,5.58485105004e-17,1.0287675404e-17,Sinistro_V,Sinistro,GeneralFilters
 57985.391,18.7,0.18,7.60658046454e-17,1.26106546168e-17,Sinistro_i,Sinistro,GeneralFilters
 57985.395,18.63,0.15,8.11314921931e-17,1.12087294171e-17,Sinistro_i,Sinistro,GeneralFilters

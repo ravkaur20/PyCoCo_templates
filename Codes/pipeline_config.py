@@ -20,18 +20,32 @@ COCO_PATH: str = os.environ.get("COCO_PATH", _DEFAULT_COCO).rstrip("/") + os.sep
 # Default supernova name (override per notebook).
 SNNAME_DEFAULT: str = "AT2017gfo"
 
+# Explosion / merger time (MJD) for phase axes (e.g. 7.5_alternate ``prepare_trapz_gp_comparison``
+# when ``mjd0`` is None). Add entries for other events; notebooks may also pass ``mjd0=`` explicitly.
+SN_EXPLOSION_MJD: dict[str, float] = {
+    "AT2017gfo": 57982.52851852,
+}
+
 # Optional global wavelength limits for GP prediction / lookup (Angstrom). None = auto from data.
 PIPELINE_WL_MIN_A: float | None = None
 PIPELINE_WL_MAX_A: float | None = None
 
 # Optional George diagonal jitter (linear variance); 0 = off. Passed to ``GP(white_noise=log(...))`` in
 # ``GP2dim_utils_newlog.run_2DGP_GRID`` (George >=0.4 has no ``kernels.WhiteKernel``).
-GP_WHITE_NOISE: float = 0.0
+GP_WHITE_NOISE: float = 1e-4
 
 # Notebook 6 / run_2DGP_GRID: optionally merge extra prediction phases, evenly spaced in log10(phase
 # days) between the current min/max column (``np.logspace`` on linear days). Default off = legacy behavior.
 GP_PREDICT_DENSE_LOG_PHASE: bool = False
 GP_PREDICT_DENSE_LOG_PHASE_N: int = 64
+
+# Notebook 6 / ``run_2DGP_GRID``: optional pseudo training points at fixed log10(phase days) with
+# capped log10 flux (faint), one per unique training wavelength node—mirrors LC anchor idea in 2D.
+# Default off. Does not write files; mangling still uses raw photometry only.
+GP_2D_ANCHOR_T0: bool = False
+GP_2D_T0_ANCHOR_LOG_PHASE: float = -8.0
+GP_2D_T0_ANCHOR_LOG10_FLUX_CAP: float = -50.0
+GP_2D_T0_ANCHOR_LOG10_FLUX_ERR: float = 2.0
 
 # Notebook 4: add synthetic (pseudo) log-phase / log-flux training point before ``gp.compute`` so each
 # band's 1D GP can pull toward faint flux at explosion. Marked SUDO in ``clipped_extended_data``.

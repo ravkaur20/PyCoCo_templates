@@ -24,9 +24,19 @@ __all__ = [
     "read_final_spectrum_linear",
     "deduplicate_wavelength_flux",
     "create_lookup_table",
+    "nearest_final_spectrum_native",
+    "list_final_spectra_native_rows",
+    "index_final_native_files",
+    "default_list_file_for_mode",
+    "default_spec_dir_for_mode",
+    "collect_input_spectra_for_mode",
+    "resolve_comparison_spectrum_path",
+    "load_comparison_spectrum_xy",
     "lookup_index_is_mjd",
     "lookup_spec_mjd_axis",
     "times_for_lookup_plot",
+    "augment_spectra_list_explosion_mjd",
+    "dense_plot_axis_log_days",
 ]
 
 FINAL_SUFFIXES: Tuple[str, ...] = (
@@ -249,35 +259,16 @@ def read_final_spectrum_linear(
     return wl_out, fl_out, fe_out
 
 
-def create_lookup_table(
+def _enumerate_final_spectra_native_rows(
     data_dir: str,
     coco_path: str,
     snname: str,
     *,
     flux_on_disk: FluxOnDisk = "auto",
     datalc_path: str | None = None,
-    wavelength_range: tuple[float, float] | None = None,
-    wavelength_bins: int = 10_000,
     final_suffixes: tuple[str, ...] | None = None,
-) -> tuple[Any, np.ndarray, np.ndarray, list[tuple[float, np.ndarray, np.ndarray]]]:
-    """
-    Load FINAL spectra from ``data_dir``, convert flux to linear F_lambda, interpolate to a common
-    grid.
-
-    **Index:** default integer row index (one row per file). Physical MJDs are
-    ``lookup_table.attrs['spec_mjd']``; filename phase keys are ``attrs['phase_stem']``.
-    Several files can share the same ``spec_mjd``; they are **not** averaged.
-
-    ``final_suffixes``: if set (e.g. ``("_FINAL_spec_FL.txt",)``), only those products are loaded.
-
-    Returns
-    -------
-    lookup_table, spec_mjds, common_wavelengths, spectra_list
-        ``spec_mjds`` aligns with rows (physical MJD per spectrum). ``spectra_list`` entries are
-        ``(spec_mjd, wavelength_Å, linear_flux)`` on ``common_wavelengths``.
-    """
-    import pandas as pd
-
+) -> list[tuple[float, float, np.ndarray, np.ndarray, str]]:
+    """Sorted list of ``(spec_mjd, stem_float, wl_Å, fl_linear, fname)`` for FINAL .txt files."""
     spectra_files = sorted(f for f in os.listdir(data_dir) if f.endswith(".txt"))
     if final_suffixes:
         spectra_files = [f for f in spectra_files if any(f.endswith(s) for s in final_suffixes)]
@@ -287,7 +278,6 @@ def create_lookup_table(
         )
 
     rows: list[tuple[float, float, np.ndarray, np.ndarray, str]] = []
-
     for fname in spectra_files:
         stem_float = parse_final_stem(fname)
         smjd = stem_to_spec_mjd(
@@ -301,13 +291,289 @@ def create_lookup_table(
             continue
         order = np.argsort(wl)
         wl, fl = wl[order], fl[order]
-
-        rows.append((smjd, float(stem_float), wl, fl, fname))
+        rows.append((float(smjd), float(stem_float), wl, fl, fname))
 
     if not rows:
         raise ValueError("No valid spectra loaded from %s" % data_dir)
-
     rows.sort(key=lambda r: (r[0], r[1]))
+    return rows
+
+
+def nearest_final_spectrum_native(
+    data_dir: str,
+    mjd_query: float,
+    coco_path: str,
+    snname: str,
+    *,
+    flux_on_disk: FluxOnDisk = "auto",
+    datalc_path: str | None = None,
+    final_suffixes: tuple[str, ...] | None = None,
+) -> tuple[float, np.ndarray, np.ndarray, str]:
+    """
+    Load the FINAL spectrum whose ``spec_mjd`` is closest to ``mjd_query``, on its **native**
+    wavelength grid (no ``linspace`` / lookup-table interpolation).
+
+    Returns
+    -------
+    spec_mjd, wl, fl, fname
+        Observer-frame MJD, wavelength Å, linear F_lambda, basename of the file.
+    """
+    rows = _enumerate_final_spectra_native_rows(
+        data_dir,
+        coco_path,
+        snname,
+        flux_on_disk=flux_on_disk,
+        datalc_path=datalc_path,
+        final_suffixes=final_suffixes,
+    )
+    spec_mjds = np.asarray([r[0] for r in rows], dtype=float)
+    pos = int(np.argmin(np.abs(spec_mjds - float(mjd_query))))
+    smjd, _stem, wl, fl, fname = rows[pos]
+    return float(smjd), wl.copy(), fl.copy(), fname
+
+
+def list_final_spectra_native_rows(
+    data_dir: str,
+    coco_path: str,
+    snname: str,
+    *,
+    flux_on_disk: FluxOnDisk = "auto",
+    datalc_path: str | None = None,
+    final_suffixes: tuple[str, ...] | None = None,
+) -> list[tuple[float, float, np.ndarray, np.ndarray, str]]:
+    """All FINAL spectra in ``data_dir``: ``(spec_mjd, stem_float, wl_Å, fl_linear, fname)``, sorted."""
+    return _enumerate_final_spectra_native_rows(
+        data_dir,
+        coco_path,
+        snname,
+        flux_on_disk=flux_on_disk,
+        datalc_path=datalc_path,
+        final_suffixes=final_suffixes,
+    )
+
+
+def index_final_native_files(
+    data_dir: str,
+    coco_path: str,
+    snname: str,
+    *,
+    datalc_path: str | None = None,
+    final_suffixes: tuple[str, ...] | None = None,
+) -> list[tuple[float, float, str]]:
+    """Lightweight index: ``(spec_mjd, stem_float, fname)`` sorted, without loading flux."""
+    try:
+        spectra_files = sorted(f for f in os.listdir(data_dir) if f.endswith(".txt"))
+    except FileNotFoundError:
+        raise FileNotFoundError("No such FINAL directory: %s" % data_dir) from None
+    if final_suffixes:
+        spectra_files = [f for f in spectra_files if any(f.endswith(s) for s in final_suffixes)]
+    if not spectra_files:
+        raise FileNotFoundError(
+            "No matching .txt spectra in %s (final_suffixes=%r)" % (data_dir, final_suffixes)
+        )
+    rows: list[tuple[float, float, str]] = []
+    for fname in spectra_files:
+        stem_float = parse_final_stem(fname)
+        smjd = stem_to_spec_mjd(
+            stem_float, coco_path, snname, datalc_path=datalc_path
+        )
+        rows.append((float(smjd), float(stem_float), fname))
+    rows.sort(key=lambda r: (r[0], r[1]))
+    return rows
+
+
+def default_list_file_for_mode(mode: str, snname: str, coco_path: str) -> str | None:
+    """Spectrum list path under Inputs/Spectroscopy for original/smoothed."""
+    mode = str(mode).lower()
+    if mode == "smoothed":
+        return os.path.join(
+            coco_path, "Inputs", "Spectroscopy", "2_spec_lists_smoothed", "%s.list" % snname
+        )
+    if mode == "original":
+        return os.path.join(
+            coco_path, "Inputs", "Spectroscopy", "1_spec_lists_original", "%s.list" % snname
+        )
+    return None
+
+
+def default_spec_dir_for_mode(mode: str, snname: str, coco_path: str) -> str:
+    mode = str(mode).lower()
+    if mode == "smoothed":
+        return os.path.join(coco_path, "Inputs", "Spectroscopy", "2_spec_smoothed")
+    if mode == "original":
+        return os.path.join(coco_path, "Inputs", "Spectroscopy", "1_spec_original", snname)
+    if mode == "mangled":
+        return os.path.join(coco_path, "Outputs", snname, "mangled_spectra")
+    raise ValueError("mode must be 'original', 'smoothed', or 'mangled'")
+
+
+def collect_input_spectra_for_mode(
+    mode: str,
+    list_file: str | None,
+    original_spec_dir: str | None,
+    snname: str,
+    coco_path: str,
+) -> tuple[list[str], np.ndarray, str, str | None]:
+    """
+    Build parallel lists of spectrum paths (relative or absolute) and MJDs.
+
+    For mode='mangled' with list_file missing or not a file, scans original_spec_dir for *.txt.
+    Returns ``(orig_paths, orig_mjds, original_spec_dir, list_ref)``.
+    """
+    mode = str(mode).lower()
+    if mode not in ("original", "smoothed", "mangled"):
+        raise ValueError("mode must be 'original', 'smoothed', or 'mangled'")
+
+    if original_spec_dir is None:
+        original_spec_dir = default_spec_dir_for_mode(mode, snname, coco_path)
+
+    orig_paths: list[str] = []
+    orig_mjds_list: list[float] = []
+    list_ref: str | None = list_file
+
+    if mode == "mangled":
+        lf = list_file
+        use_scan = (lf is None) or (not os.path.isfile(os.path.expanduser(str(lf))))
+        if use_scan:
+            list_ref = None
+            if not os.path.isdir(original_spec_dir):
+                return orig_paths, np.asarray([], dtype=float), original_spec_dir, list_ref
+            basenames = sorted(f for f in os.listdir(original_spec_dir) if f.endswith(".txt"))
+            orig_paths = basenames
+            for fname in basenames:
+                try:
+                    orig_mjds_list.append(float(str(fname).split("_")[0]))
+                except Exception:
+                    orig_mjds_list.append(float("nan"))
+        else:
+            list_ref = lf
+            with open(lf) as fp:
+                for line in fp:
+                    if line.strip() == "" or line.startswith("#"):
+                        continue
+                    parts = line.split()
+                    if len(parts) < 1:
+                        continue
+                    try:
+                        orig_paths.append(parts[0])
+                        orig_mjds_list.append(float(parts[-1]))
+                    except Exception:
+                        continue
+    elif mode == "smoothed":
+        if list_file is None:
+            list_file = default_list_file_for_mode("smoothed", snname, coco_path)
+        list_ref = list_file
+        list_file = str(list_file).replace("1_spec_lists_original", "2_spec_lists_smoothed")
+        with open(list_file) as fp:
+            for line in fp:
+                if line.strip() == "" or line.startswith("#"):
+                    continue
+                parts = line.split()
+                if len(parts) < 3:
+                    continue
+                try:
+                    orig_mjds_list.append(float(parts[0]))
+                    orig_paths.append(parts[2])
+                except Exception:
+                    continue
+    else:
+        if list_file is None:
+            list_file = default_list_file_for_mode("original", snname, coco_path)
+        list_ref = list_file
+        with open(list_file) as fp:
+            for line in fp:
+                if line.strip() == "" or line.startswith("#"):
+                    continue
+                parts = line.split()
+                if len(parts) < 3:
+                    continue
+                try:
+                    orig_paths.append(parts[0])
+                    orig_mjds_list.append(float(parts[-1]))
+                except Exception:
+                    continue
+
+    orig_mjds = np.asarray(orig_mjds_list, dtype=float)
+    return orig_paths, orig_mjds, original_spec_dir, list_ref
+
+
+def resolve_comparison_spectrum_path(
+    orig_path: str,
+    mode: str,
+    original_spec_dir: str,
+    coco_path: str,
+    snname: str,
+) -> str:
+    """Map list path entries to a local on-disk path (handles legacy /data/ prefixes)."""
+    p = str(orig_path)
+    if p.startswith("/data/2_spec_smoothed/"):
+        local_base = os.path.join(coco_path, "Inputs", "Spectroscopy", "2_spec_smoothed")
+        return os.path.join(local_base, p.replace("/data/2_spec_smoothed/", "").lstrip("/"))
+    if p.startswith("/data/1_spec_original/"):
+        local_base = os.path.join(coco_path, "Inputs", "Spectroscopy", "1_spec_original", snname)
+        return os.path.join(local_base, p.replace("/data/1_spec_original/", "").lstrip("/"))
+    if os.path.isabs(p):
+        return os.path.expanduser(p)
+    return os.path.join(os.path.expanduser(original_spec_dir), p)
+
+
+def load_comparison_spectrum_xy(
+    path: str,
+    mode: str,
+    flux_on_disk: FluxOnDisk,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Linear F_lambda and wavelength (Å); mangled uses ``read_final_spectrum_linear``."""
+    if str(mode).lower() == "mangled":
+        wl, fl, _ = read_final_spectrum_linear(path, flux_on_disk=flux_on_disk)
+        return np.asarray(wl, dtype=float), np.asarray(fl, dtype=float)
+    d = np.loadtxt(path)
+    return np.asarray(d[:, 0], dtype=float), np.asarray(d[:, 1], dtype=float)
+
+
+def create_lookup_table(
+    data_dir: str,
+    coco_path: str,
+    snname: str,
+    *,
+    flux_on_disk: FluxOnDisk = "auto",
+    datalc_path: str | None = None,
+    wavelength_range: tuple[float, float] | None = None,
+    wavelength_bins: int = 10_000,
+    final_suffixes: tuple[str, ...] | None = None,
+    prepend_explosion_mjd: float | None = None,
+    prepend_flux_floor_linear: float = 1e-99,
+) -> tuple[Any, np.ndarray, np.ndarray, list[tuple[float, np.ndarray, np.ndarray]]]:
+    """
+    Load FINAL spectra from ``data_dir``, convert flux to linear F_lambda, interpolate to a common
+    grid.
+
+    **Index:** default integer row index (one row per file). Physical MJDs are
+    ``lookup_table.attrs['spec_mjd']``; filename phase keys are ``attrs['phase_stem']``.
+    Several files can share the same ``spec_mjd``; they are **not** averaged.
+
+    ``final_suffixes``: if set (e.g. ``("_FINAL_spec_FL.txt",)``), only those products are loaded.
+
+    ``prepend_explosion_mjd``: if set (MJD), prepend one synthetic row at that time with constant
+    ``prepend_flux_floor_linear`` F_λ on ``common_wavelengths``, **only if** the earliest loaded
+    spectrum is strictly later. Use ``t0_fix`` for explosion time. Intended for synphot / 7.5 LC
+    plots (not real data).
+
+    Returns
+    -------
+    lookup_table, spec_mjds, common_wavelengths, spectra_list
+        ``spec_mjds`` aligns with rows (physical MJD per spectrum). ``spectra_list`` entries are
+        ``(spec_mjd, wavelength_Å, linear_flux)`` on ``common_wavelengths``.
+    """
+    import pandas as pd
+
+    rows = _enumerate_final_spectra_native_rows(
+        data_dir,
+        coco_path,
+        snname,
+        flux_on_disk=flux_on_disk,
+        datalc_path=datalc_path,
+        final_suffixes=final_suffixes,
+    )
     spec_mjds_list = [float(r[0]) for r in rows]
     stems_list = [float(r[1]) for r in rows]
     wavelengths = [r[2] for r in rows]
@@ -333,6 +599,14 @@ def create_lookup_table(
         )
         fluxes_interpolated.append(flux_interp)
 
+    if prepend_explosion_mjd is not None and spec_mjds_list:
+        pe = float(prepend_explosion_mjd)
+        if float(min(spec_mjds_list)) > pe + 1e-9:
+            zero_row = np.full(int(wavelength_bins), float(prepend_flux_floor_linear), dtype=float)
+            spec_mjds_list = [pe] + spec_mjds_list
+            stems_list = [float("nan")] + stems_list
+            fluxes_interpolated = [zero_row] + fluxes_interpolated
+
     fluxes_interpolated = np.asarray(fluxes_interpolated, dtype=float)
     lookup_table = pd.DataFrame(fluxes_interpolated, columns=common_wavelengths)
     spec_mjd_arr = np.asarray(spec_mjds_list, dtype=float)
@@ -350,6 +624,64 @@ def create_lookup_table(
     ]
 
     return lookup_table, spec_mjd_arr, common_wavelengths, spectra_list
+
+
+def augment_spectra_list_explosion_mjd(
+    spectra_list: list,
+    explosion_mjd: float,
+    common_wavelengths: np.ndarray,
+    *,
+    flux_floor_linear: float = 1e-99,
+    only_if_before_first: bool = True,
+) -> list:
+    """Prepend one epoch at ``explosion_mjd`` with constant F_lambda = ``flux_floor_linear``.
+
+    If ``only_if_before_first`` and the earliest spectrum MJD is already at or before
+    ``explosion_mjd``, return ``spectra_list`` unchanged (shallow copied list).
+    """
+    if not spectra_list:
+        return list(spectra_list)
+    times = [float(t) for (t, _, _) in spectra_list]
+    t_min = min(times)
+    if only_if_before_first and t_min <= float(explosion_mjd) + 1e-9:
+        return list(spectra_list)
+    wl = np.asarray(common_wavelengths, dtype=float)
+    fl = np.full_like(wl, float(flux_floor_linear), dtype=float)
+    head: tuple[float, np.ndarray, np.ndarray] = (float(explosion_mjd), wl.copy(), fl)
+    return [head] + list(spectra_list)
+
+
+def dense_plot_axis_log_days(
+    syn_mjd: np.ndarray,
+    syn_values: np.ndarray,
+    mjd0: float,
+    *,
+    n_points: int = 256,
+    min_pos_days: float = 1e-4,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Interpolate ``syn_values`` vs log10(days since ``mjd0``) for smoother **plot** lines only.
+
+    Days axis is clamped to ``min_pos_days`` so log10 is finite. Returns
+    ``(days_since_mjd0, values_interp)``; edge values outside the data range are NaN from ``np.interp``.
+    """
+    t_rel = np.asarray(syn_mjd, dtype=float) - float(mjd0)
+    v = np.asarray(syn_values, dtype=float)
+    m = np.isfinite(t_rel) & np.isfinite(v)
+    t_rel, v = t_rel[m], v[m]
+    if t_rel.size < 2:
+        return t_rel, v
+    order = np.argsort(t_rel)
+    t_rel, v = t_rel[order], v[order]
+    pos = t_rel[t_rel > 0]
+    lo = float(min_pos_days)
+    if pos.size:
+        lo = max(lo, float(np.nanmin(pos)))
+    hi = float(np.nanmax(t_rel))
+    if hi <= lo:
+        return t_rel, v
+    u = np.logspace(np.log10(lo), np.log10(hi), int(max(2, n_points)))
+    out = np.interp(u, t_rel, v, left=np.nan, right=np.nan)
+    return u, out
 
 
 def times_for_lookup_plot(lookup_table: Any) -> np.ndarray:

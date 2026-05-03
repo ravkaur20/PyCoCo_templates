@@ -428,6 +428,46 @@ def gp_dense_matrix_bytes_order_of_magnitude(n_train):
 	return 8 * n * n
 
 
+def augment_2dgp_training_t0_anchor(
+	x1_data_norm,
+	x2_data_norm,
+	y_data_nonan,
+	y_data_nonan_err,
+	grid_norm_info,
+	*,
+	log_phase_anchor: float,
+	log10_flux_cap: float,
+	log10_flux_err: float,
+):
+	"""Append one pseudo point per **unique** training ``x1`` at early log10(phase days).
+
+	Flux is a capped log10 linear flux mapped into the same scaled ln-flux space as
+	``transform2LOG_reshape`` (faint = large negative log10 F).
+	"""
+	LN10 = np.log(10.0)
+	offset = float(grid_norm_info["offset"])
+	sf = float(grid_norm_info["scale_factor"])
+	offset2 = float(grid_norm_info["offset2"])
+	norm2 = float(grid_norm_info["norm2"])
+	ln_flux = float(log10_flux_cap) * LN10
+	y_cap = (ln_flux - offset) / sf
+	sigma = float(log10_flux_err) * LN10 / sf
+	x2a = (float(log_phase_anchor) - offset2) / norm2
+	u1 = np.unique(np.asarray(x1_data_norm, dtype=float))
+	if u1.size == 0:
+		return x1_data_norm, x2_data_norm, y_data_nonan, y_data_nonan_err
+	x1_add = u1.astype(float)
+	x2_add = np.full(u1.shape, x2a, dtype=float)
+	y_add = np.full(u1.shape, y_cap, dtype=float)
+	yerr_add = np.full(u1.shape, sigma, dtype=float)
+	return (
+		np.concatenate([np.asarray(x1_data_norm, dtype=float), x1_add]),
+		np.concatenate([np.asarray(x2_data_norm, dtype=float), x2_add]),
+		np.concatenate([np.asarray(y_data_nonan, dtype=float), y_add]),
+		np.concatenate([np.asarray(y_data_nonan_err, dtype=float), yerr_add]),
+	)
+
+
 def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2_data_norm,\
 		kernel_wls_scale, kernel_time_scale, extrap_mjds, prior=False, points=np.nan, values=np.nan):
 	
@@ -450,6 +490,24 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 	# TRAINING: X, y, terr
 	norm1 = GP2DIM_Class.grid_norm_info['norm1']
 	norm2 = GP2DIM_Class.grid_norm_info['norm2']
+
+	if bool(getattr(GP2DIM_Class, "gp_2d_anchor_t0", False)):
+		_nu_before = int(np.unique(np.asarray(x1_data_norm, dtype=float)).size)
+		x1_data_norm, x2_data_norm, y_data_nonan, y_data_nonan_err = augment_2dgp_training_t0_anchor(
+			x1_data_norm,
+			x2_data_norm,
+			y_data_nonan,
+			y_data_nonan_err,
+			GP2DIM_Class.grid_norm_info,
+			log_phase_anchor=float(getattr(GP2DIM_Class, "gp_2d_t0_anchor_log_phase", -8.0)),
+			log10_flux_cap=float(getattr(GP2DIM_Class, "gp_2d_t0_anchor_log10_flux_cap", -50.0)),
+			log10_flux_err=float(getattr(GP2DIM_Class, "gp_2d_t0_anchor_log10_flux_err", 2.0)),
+		)
+		if _log_progress:
+			_gp_log(
+				"[run_2DGP_GRID] 2D t0-anchor training: +%i pseudo points (%i unique x1 nodes)"
+				% (_nu_before, _nu_before)
+			)
 
 	if prior:
 		from george.modeling import Model
