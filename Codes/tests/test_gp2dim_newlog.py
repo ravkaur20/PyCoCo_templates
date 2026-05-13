@@ -87,6 +87,119 @@ class TestGp2dimNewlog(unittest.TestCase):
         self.assertGreater(d.grid_norm_info["scale_factor"], 0)
 
 
+@skip_gp2dim
+class TestLnFluxErrFromRelative(unittest.TestCase):
+    def test_small_dex_matches_legacy_chain_rule(self):
+        class Dummy:
+            pass
+
+        d_rel = Dummy()
+        d_rel.gp_ln_flux_err_from_relative = True
+        d_leg = Dummy()
+        d_leg.gp_ln_flux_err_from_relative = False
+        raw = np.array([[-30.0, -29.9]], dtype=float)
+        raw_err = np.full_like(raw, 1e-7)
+        off_xa = np.array([3.5, 3.51])
+        off_ya = np.array([-1.0])
+        _, yerr_rel, _, _ = g.transform2LOG_reshape(d_rel, raw, raw_err, off_xa, off_ya)
+        _, yerr_leg, _, _ = g.transform2LOG_reshape(d_leg, raw, raw_err, off_xa, off_ya)
+        np.testing.assert_allclose(yerr_rel, yerr_leg, rtol=1e-5, atol=1e-14)
+
+    def test_large_dex_differs_from_chain_rule(self):
+        class Dummy:
+            pass
+
+        d_rel = Dummy()
+        d_rel.gp_ln_flux_err_from_relative = True
+        d_leg = Dummy()
+        d_leg.gp_ln_flux_err_from_relative = False
+        raw = np.array([[-5.0, -5.1]], dtype=float)
+        raw_err = np.full_like(raw, 0.4)
+        off_xa = np.array([3.5, 3.51])
+        off_ya = np.array([-1.0])
+        _, yerr_rel, _, _ = g.transform2LOG_reshape(d_rel, raw, raw_err, off_xa, off_ya)
+        _, yerr_leg, _, _ = g.transform2LOG_reshape(d_leg, raw, raw_err, off_xa, off_ya)
+        self.assertGreater(float(np.max(np.abs(yerr_rel - yerr_leg))), 1e-6)
+
+    def test_relative_formula_finite_positive(self):
+        class Dummy:
+            pass
+
+        d = Dummy()
+        d.gp_ln_flux_err_from_relative = True
+        d.gp_yerr_floor_frac = 0.0
+        d.gp_yerr_abs_floor = 0.0
+        raw = np.array([[-10.0]], dtype=float)
+        raw_err = np.array([[0.05]], dtype=float)
+        y, yerr, _, _ = g.transform2LOG_reshape(d, raw, raw_err, np.array([3.5]), np.array([-1.0]))
+        self.assertTrue(np.all(np.isfinite(y)))
+        self.assertTrue(np.all(np.isfinite(yerr)))
+        self.assertTrue(np.all(yerr > 0))
+
+
+@skip_gp2dim
+class TestTrainingYerrFloors(unittest.TestCase):
+    def test_floor_off_smaller_than_legacy_spread_floor(self):
+        class Dummy:
+            pass
+
+        raw = np.array([[-30.0, -29.9], [-29.8, -30.1]], dtype=float)
+        raw_err = np.full_like(raw, 1e-9)
+        off_xa = np.array([3.5, 3.51], dtype=float)
+        off_ya = np.array([-1.0, -0.9], dtype=float)
+        d_off = Dummy()
+        d_off.gp_yerr_floor_frac = 0.0
+        d_off.gp_yerr_abs_floor = 0.0
+        _, yerr_off, _, _ = g.transform2LOG_reshape(d_off, raw, raw_err, off_xa, off_ya)
+        d_on = Dummy()
+        d_on.gp_yerr_floor_frac = 1e-4
+        d_on.gp_yerr_abs_floor = 0.0
+        _, yerr_on, _, _ = g.transform2LOG_reshape(d_on, raw, raw_err, off_xa, off_ya)
+        self.assertLess(np.min(yerr_off), np.min(yerr_on))
+        self.assertTrue(np.all(yerr_on >= yerr_off - 1e-15))
+
+    def test_zero_propagated_errors_raise_without_floor(self):
+        class Dummy:
+            pass
+
+        d = Dummy()
+        d.gp_yerr_floor_frac = 0.0
+        d.gp_yerr_abs_floor = 0.0
+        raw = np.array([[-30.0, -29.9]], dtype=float)
+        raw_err = np.zeros_like(raw)
+        with self.assertRaises(ValueError):
+            g.transform2LOG_reshape(
+                d, raw, raw_err, np.array([3.5]), np.array([-1.0])
+            )
+
+    def test_abs_floor_makes_zero_errors_positive(self):
+        class Dummy:
+            pass
+
+        d = Dummy()
+        d.gp_yerr_floor_frac = 0.0
+        d.gp_yerr_abs_floor = 1e-12
+        raw = np.array([[-30.0, -29.9]], dtype=float)
+        raw_err = np.zeros_like(raw)
+        _, yerr, _, _ = g.transform2LOG_reshape(
+            d, raw, raw_err, np.array([3.5]), np.array([-1.0])
+        )
+        self.assertTrue(np.all(yerr >= 1e-12 * 0.99))
+
+    def test_apply_compute_stage_matches_legacy_floor_when_enabled(self):
+        class Dummy:
+            pass
+
+        d = Dummy()
+        d.gp_yerr_floor_frac = 1e-4
+        d.gp_yerr_abs_floor = 0.0
+        y = np.array([0.0, 1.0, -0.5])
+        yerr = np.array([1e-30, 1e-30, 1e-30])
+        out = g._apply_training_yerr_floors(d, y, yerr, stage="compute")
+        expect_min = max(1e-4 * (float(np.nanstd(y)) + 1e-12), 1e-12)
+        self.assertGreaterEqual(float(np.min(out)), expect_min * 0.999)
+
+
 class TestGpPredictionGrid(unittest.TestCase):
     """Caps N_wavelength so run_2DGP_GRID does not build huge predict batches (memory)."""
 

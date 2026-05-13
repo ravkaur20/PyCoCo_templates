@@ -1,0 +1,23 @@
+{
+  "snname": "AT2017gfo",
+  "mode": "extrapolate_spectra",
+  "gp_module": "GP2dim_utils_newlog_zscore",
+  "kernel_layout": "per_axis_Matern32_product",
+  "column_order": "X[:,0]=normalized_log10_wavelength, X[:,1]=normalized_log10_phase_days",
+  "prior_used": true,
+  "compute_note": "Use array ``y_compute`` for ``gp.compute``. For ln-flux modules it equals sqrt(yerr**2 + 1e-6**2); for linear_flux it equals yerr.",
+  "grid_norm_info": {
+    "offset": -68.82366975746785,
+    "scale_factor": 30.797394278274616,
+    "coord_parametrization": "zscore",
+    "x1_mean": 3.9384469133808877,
+    "x1_std": 0.23603642445150844,
+    "x2_mean": 0.5276312061072239,
+    "x2_std": 0.48118750484347916,
+    "x2_train_min": -2.9586073258
+  },
+  "files": {
+    "npz": "gp_minimal_bundle.npz",
+    "meta": "gp_minimal_bundle_meta.json"
+  }
+}

@@ -9,6 +9,7 @@ from __future__ import annotations
 import difflib
 import os
 import warnings
+from collections.abc import Collection
 from typing import Any, Literal
 
 import numpy as np
@@ -90,19 +91,26 @@ def warn_bands_photometry(
     *,
     csv_path: str | None = None,
     max_uniq_show: int = 40,
+    skip_empty_bands: Collection[str] | None = None,
 ) -> None:
     """
     Emit a ``UserWarning`` for each requested ``band`` that has no rows in ``df['band']``.
 
     Includes a sample of existing ``band`` strings and ``difflib`` near-miss suggestions.
+
+    ``skip_empty_bands``
+        Band names allowed to have no photometry (e.g. synthetic-only filters); no warning.
     """
     if "band" not in df.columns:
         return
+    skip = frozenset(skip_empty_bands) if skip_empty_bands else frozenset()
     uniq = sorted(df["band"].astype(str).unique().tolist())
     loc = csv_path or "photometry CSV"
     for band in bands:
         sub = df[df["band"] == band]
         if not sub.empty:
+            continue
+        if band in skip:
             continue
         sugg = difflib.get_close_matches(str(band), uniq, n=3, cutoff=0.5)
         samp = uniq[:max_uniq_show]
@@ -220,14 +228,24 @@ def collect_trapz_lightcurves(
     datalc_path: str | None = None,
     final_suffixes: tuple[str, ...] | None = None,
     filters_parent: str | None = None,
+    synphot_abmag_bands: Collection[str] | None = None,
 ) -> dict[str, dict[str, np.ndarray]]:
     """
     For each FINAL spectrum in ``data_dir``, compute trapz flux in each ``bands`` filter.
 
+    Parameters
+    ----------
+    synphot_abmag_bands
+        If set, also compute per-epoch **synphot** ``effstim('abmag')`` (standard AB band
+        mag) for those bands using the same native spectrum grid—no extra file IO.
+        Requires ``synphot`` / ``astropy``. Approximate ``abmag_err`` from fractional flux
+        error (rough; for GP weights only).
+
     Returns
     -------
     dict[band, dict]
-        ``mjd``, ``flux``, ``flux_err`` aligned per spectrum epoch.
+        ``mjd``, ``flux``, ``flux_err``. Bands in ``synphot_abmag_bands`` also have
+        ``abmag``, ``abmag_err`` aligned with ``mjd``.
     """
     if filters_parent is None:
         filters_parent = os.path.join(
@@ -260,11 +278,16 @@ def collect_trapz_lightcurves(
     if not rows:
         raise ValueError("No valid spectra in %s" % data_dir)
 
-    filt_cache: dict[str, tuple[np.ndarray, np.ndarray]] = {}
-    out: dict[str, dict[str, list]] = {
-        b: {"mjd": [], "flux": [], "flux_err": []} for b in bands
-    }
+    ab_set = frozenset(synphot_abmag_bands) if synphot_abmag_bands else frozenset()
+    out: dict[str, dict[str, list]] = {}
+    for b in bands:
+        od: dict[str, list] = {"mjd": [], "flux": [], "flux_err": []}
+        if b in ab_set:
+            od["abmag"] = []
+            od["abmag_err"] = []
+        out[b] = od
 
+    filt_cache: dict[str, tuple[np.ndarray, np.ndarray]] = {}
     for smjd, _fn, wl, fl, fe in rows:
         for band in bands:
             fpath = resolve_filter_path(band, filters_parent=filters_parent, snname=snname)
@@ -275,15 +298,33 @@ def collect_trapz_lightcurves(
             out[band]["mjd"].append(smjd)
             out[band]["flux"].append(fval)
             out[band]["flux_err"].append(ferr)
+            if band in ab_set:
+                try:
+                    mab = float(synphot_abmag_native(wl, fl, fpath))
+                except Exception:
+                    mab = float("nan")
+                out[band]["abmag"].append(mab)
+                if np.isfinite(fval) and np.isfinite(ferr) and fval > 0:
+                    me = max(
+                        0.02,
+                        (2.5 / np.log(10.0)) * (float(ferr) / float(fval)),
+                    )
+                else:
+                    me = float("nan")
+                out[band]["abmag_err"].append(me)
 
-    return {
-        b: {
+    result: dict[str, dict[str, np.ndarray]] = {}
+    for b in bands:
+        dout = {
             "mjd": np.asarray(out[b]["mjd"], dtype=float),
             "flux": np.asarray(out[b]["flux"], dtype=float),
             "flux_err": np.asarray(out[b]["flux_err"], dtype=float),
         }
-        for b in bands
-    }
+        if b in ab_set:
+            dout["abmag"] = np.asarray(out[b]["abmag"], dtype=float)
+            dout["abmag_err"] = np.asarray(out[b]["abmag_err"], dtype=float)
+        result[b] = dout
+    return result
 
 
 def smooth_lightcurve_gp(
@@ -423,6 +464,7 @@ def prepare_trapz_gp_comparison(
     filters_parent: str | None = None,
     mjd0: float | None = None,
     dt_match_days: float = 2.0,
+    synthetic_only_bands: Collection[str] | None = None,
 ) -> dict[str, Any]:
     """
     Load photometry and trapz light curves per band; fit empirical magnitude zeropoint per band.
@@ -436,13 +478,20 @@ def prepare_trapz_gp_comparison(
         Phase origin for ``days_since = MJD - mjd0`` (typically **explosion / merger MJD**).
         If ``None``, uses ``pipeline_config.SN_EXPLOSION_MJD[snname]`` when defined, otherwise
         minimum photometry MJD (with a warning).
+    synthetic_only_bands
+        Band names with **no photometry** that should still be included: trapz light curve,
+        optional per-epoch **synphot AB mags** (``abmag`` / ``abmag_err``) when listed here,
+        ``zp = 0``, ``n_zp_matches = 0``, and an empty ``obs`` frame.
+        Plotting uses ``abmag`` when present so magnitudes match standard AB band definitions;
+        trapz ``flux`` remains for band-integrated means used in notebook 8.
 
     Returns
     -------
     dict
         ``mjd0``, ``photometry_csv``, ``snname``, ``bands`` mapping each successful band to
         ``mjd``, ``flux``, ``flux_err``, ``obs`` (DataFrame), ``zp``, ``n_zp_matches``.
-        Bands with no photometry rows are omitted from ``bands``.
+        Synthetic-only bands may include ``abmag``, ``abmag_err`` (synphot AB).
+        Bands with no photometry rows are omitted unless listed in ``synthetic_only_bands``.
     """
     df = pd.read_csv(photometry_csv)
     for col in ("MJD", "Mag", "Mag_err", "band"):
@@ -451,7 +500,8 @@ def prepare_trapz_gp_comparison(
 
     mjd0 = _resolve_phase_reference_mjd(snname, df, mjd0)
 
-    warn_bands_photometry(bands, df, csv_path=photometry_csv)
+    syn_only = frozenset(synthetic_only_bands) if synthetic_only_bands else frozenset()
+    warn_bands_photometry(bands, df, csv_path=photometry_csv, skip_empty_bands=syn_only)
 
     lcs = collect_trapz_lightcurves(
         data_dir,
@@ -462,17 +512,40 @@ def prepare_trapz_gp_comparison(
         datalc_path=datalc_path,
         final_suffixes=final_suffixes,
         filters_parent=filters_parent,
+        synphot_abmag_bands=syn_only,
     )
 
     bands_out: dict[str, Any] = {}
     for band in bands:
         obs = df[df["band"] == band].copy()
-        if obs.empty:
-            continue
         lc = lcs[band]
         mjd = lc["mjd"]
         flx = lc["flux"]
         fe = lc["flux_err"]
+        if obs.empty:
+            if band not in syn_only:
+                continue
+            warnings.warn(
+                "Band %r: synthetic-only (no photometry). Using synphot AB mags (abmag) plus "
+                "zp=0 on trapz flux only."
+                % (band,),
+                UserWarning,
+                stacklevel=2,
+            )
+            obs_empty = df.iloc[0:0].copy()
+            row: dict[str, Any] = {
+                "mjd": mjd,
+                "flux": flx,
+                "flux_err": fe,
+                "obs": obs_empty,
+                "zp": 0.0,
+                "n_zp_matches": 0,
+            }
+            if "abmag" in lc:
+                row["abmag"] = lc["abmag"]
+                row["abmag_err"] = lc["abmag_err"]
+            bands_out[band] = row
+            continue
         zp, n_zp = fit_empirical_mag_zp(
             mjd,
             flx,

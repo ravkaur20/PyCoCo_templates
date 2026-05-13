@@ -14,6 +14,7 @@ from scipy.interpolate import griddata
 
 
 from gp2dim_phase_merge import merge_extrap_mjds_dense_log_phase
+from gp2dim_export import maybe_save_gp_minimal_export
 
 import george
 from george.kernels import Matern32Kernel
@@ -107,8 +108,74 @@ color_dict = {
 _EXP_ARG_CAP = 700.0
 # Avoid division by ~zero when ln-flux spread is tiny
 _SCALE_FACTOR_ABS_FLOOR = 1e-8
-# Minimum scaled GP uncertainty (fraction of MAD of training y)
-_YERR_FLOOR_FRAC = 1e-4
+
+_UNSET = object()
+
+
+def _resolve_gp_yerr_floors(GP2DIM_Class):
+    """``gp_yerr_*`` on the class override ``pipeline_config`` when set."""
+    frac = getattr(GP2DIM_Class, "gp_yerr_floor_frac", _UNSET)
+    abs_f = getattr(GP2DIM_Class, "gp_yerr_abs_floor", _UNSET)
+    if frac is _UNSET or abs_f is _UNSET:
+        try:
+            import pipeline_config as _pc
+
+            if frac is _UNSET:
+                frac = getattr(_pc, "GP_YERR_FLOOR_FRAC", None)
+            if abs_f is _UNSET:
+                abs_f = float(getattr(_pc, "GP_YERR_ABS_FLOOR", 0.0) or 0.0)
+        except ImportError:
+            if frac is _UNSET:
+                frac = None
+            if abs_f is _UNSET:
+                abs_f = 0.0
+    if abs_f is None:
+        abs_f = 0.0
+    else:
+        abs_f = float(abs_f)
+    return frac, abs_f
+
+
+def _apply_training_yerr_floors(GP2DIM_Class, y, yerr, *, stage):
+    """Raise training ``yerr`` optionally: spread-based floor differs for reshape vs pre-``gp.compute`` (legacy).
+
+    ``stage`` is ``\"transform\"`` (reshape) or ``\"compute\"``.
+    """
+    y = np.asarray(y, dtype=float)
+    yerr = np.asarray(yerr, dtype=float).copy()
+    frac, abs_f = _resolve_gp_yerr_floors(GP2DIM_Class)
+    if frac is not None and float(frac) > 0:
+        f = float(frac)
+        sy = float(np.nanstd(y))
+        if stage == "transform":
+            terr = max(f * (sy + 1e-12), f * 1e-6)
+        elif stage == "compute":
+            terr = max(f * (sy + 1e-12), 1e-12)
+        else:
+            raise ValueError("_apply_training_yerr_floors: stage must be transform or compute")
+        yerr = np.maximum(yerr, terr)
+    if abs_f > 0:
+        yerr = np.maximum(yerr, abs_f)
+    if not np.all(np.isfinite(yerr)) or np.any(yerr <= 0):
+        raise ValueError(
+            "2D GP training: need strictly positive finite yerr after optional floors. "
+            "Check input flux uncertainties, set pipeline_config.GP_YERR_ABS_FLOOR > 0, "
+            "or GP_YERR_FLOOR_FRAC (e.g. 1e-4 for legacy spread floor)."
+        )
+    return yerr
+
+
+def _resolve_ln_flux_err_from_relative(GP2DIM_Class):
+	"""If True, use ``sqrt(ln(1 + (sigma_F/F)^2))`` in ``transform2LOG_reshape``; else legacy ``sigma_log10*ln(10)``."""
+	v = getattr(GP2DIM_Class, "gp_ln_flux_err_from_relative", _UNSET)
+	if v is _UNSET:
+		try:
+			import pipeline_config as _pc
+
+			return bool(getattr(_pc, "GP_LN_FLUX_ERR_FROM_RELATIVE", True))
+		except ImportError:
+			return True
+	return bool(v)
 
 
 def scaled_ln_to_linear(scaled_mu, offset, scale_factor):
@@ -242,8 +309,16 @@ def prepare_grid(snname, GP2DIM_Class):
 def transform2LOG_reshape(GP2DIM_Class, raw_numbers, raw_numbers_err,  off_xa, off_ya):
 	"""Match GP2dim_utils_original: GP is fit on ln(flux) with scaled, dimensionless coordinates.
 
-	Inputs from the log pipeline are log10(flux) and log10(flux) uncertainties; we convert to
-	ln(flux) and sigma_ln so the rest matches the original notebook (offset, scale_factor, exp back).
+	Inputs from the log pipeline are log10(flux) and log10(flux) uncertainties (dex).
+
+	Uncertainty on ln(F): default ``sigma_ln = sqrt(ln(1 + (sigma_F/F)^2))`` with
+	``sigma_F = |F| ln(10) sigma_log10`` (``pipeline_config.GP_LN_FLUX_ERR_FROM_RELATIVE``).
+	Legacy option: ``sigma_ln = sigma_log10 * ln(10)`` (exact log-base change for additive dex noise).
+
+	Linear flux remains positive after ``scaled_ln_to_linear`` (``exp``). For an unconstrained linear-flux
+	GP, use ``GP2dim_utils_newlog_linear_flux`` (``USE_TWO_D_GP_LINEAR_FLUX``) only if negatives are acceptable
+	or post-processed.
+
 	Axes: x1 = log10(wavelength), x2 = log10(phase in days since explosion), same as the grid in NB 6.
 	"""
 	LN10 = np.log(10.0)
@@ -255,9 +330,26 @@ def transform2LOG_reshape(GP2DIM_Class, raw_numbers, raw_numbers_err,  off_xa, o
 	data_log10[~np.isfinite(data_log10)] = np.nan
 	data_log10_err[~np.isfinite(data_log10_err)] = np.nan
 
-	# ln F = ln(10) * log10 F ;  sigma_ln(F) = sigma_log10(F) * ln(10)
-	data = data_log10 * LN10
-	data_err = data_log10_err * LN10
+	# ln F = ln(10) * log10 F (= ln(F) for F = 10**log10).
+	if _resolve_ln_flux_err_from_relative(GP2DIM_Class):
+		vl10 = np.asarray(data_log10, dtype=float)
+		sig_log = np.asarray(data_log10_err, dtype=float)
+		F = np.power(10.0, np.clip(vl10, -350.0, 300.0))
+		ok = (
+			np.isfinite(vl10)
+			& np.isfinite(sig_log)
+			& (sig_log >= 0.0)
+			& np.isfinite(F)
+			& (F > 0.0)
+		)
+		rel2 = (LN10 * np.maximum(sig_log, 0.0)) ** 2
+		rel2 = np.clip(rel2, 0.0, np.finfo(np.float64).max / 4.0)
+		data_err = np.full(vl10.shape, np.nan, dtype=float)
+		data_err[ok] = np.sqrt(np.log1p(rel2[ok]))
+		data = np.where(ok, vl10 * LN10, np.nan)
+	else:
+		data = data_log10 * LN10
+		data_err = data_log10_err * LN10
 
 	offset = np.nanmin(data[~np.isnan(data)])
 	spread = np.nanmedian(data[~np.isnan(data)] - offset)
@@ -282,11 +374,9 @@ def transform2LOG_reshape(GP2DIM_Class, raw_numbers, raw_numbers_err,  off_xa, o
 
 	y_data_nonan = np.copy(data_scaled[NOT_Isnan])
 	y_data_nonan_err = np.copy(data_error_scaled[NOT_Isnan])
-	terr_floor = max(
-		_YERR_FLOOR_FRAC * (np.nanstd(y_data_nonan) + 1e-12),
-		_YERR_FLOOR_FRAC * 1e-6,
+	y_data_nonan_err = _apply_training_yerr_floors(
+		GP2DIM_Class, y_data_nonan, y_data_nonan_err, stage="transform"
 	)
-	y_data_nonan_err = np.maximum(y_data_nonan_err, terr_floor)
 
 	norm1 = np.max(x1_data)
 	offset2 = np.min(x2_data)
@@ -533,9 +623,7 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 
 	X = np.vstack((x1_data_norm, x2_data_norm)).T
 	y = y_data_nonan
-	yerr = y_data_nonan_err
-	gp_yerr_floor = max(_YERR_FLOOR_FRAC * (np.nanstd(y) + 1e-12), 1e-12)
-	yerr = np.maximum(yerr, gp_yerr_floor)
+	yerr = _apply_training_yerr_floors(GP2DIM_Class, y, y_data_nonan_err, stage="compute")
 
 	_n_train = len(y)
 	_gp_log("[run_2DGP_GRID] starting (prior=%r) N_train=%i" % (bool(prior), _n_train))
@@ -555,7 +643,10 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 				"Reduce training density (e.g. larger DELTA in the grid builder) if the kernel dies."
 			)
 
-	kernel_mix = Matern32Kernel([kernel_wls_scale, kernel_time_scale], ndim=2)
+	#kernel_mix = Matern32Kernel([kernel_wls_scale, kernel_time_scale], ndim=2)
+	k_wave = Matern32Kernel(metric=kernel_wls_scale, ndim=2, axes=1) # wavelength axis
+	k_time = Matern32Kernel(metric=kernel_time_scale, ndim=2, axes=0) # time axis
+	kernel_mix = k_wave * k_time
 	kernel2dim = np.var(y) * kernel_mix
 	_gp_wn = float(getattr(GP2DIM_Class, "gp_white_noise", 0.0))
 	# George >=0.4: homogeneous jitter via GP(white_noise=ln(variance)); legacy code used
@@ -571,7 +662,7 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 
 	_gp_log("[run_2DGP_GRID] calling gp.compute (no progress inside; may take minutes) …")
 	_t0 = time.perf_counter()
-	gp.compute(X, yerr)
+	gp.compute(X, np.sqrt(yerr**2 + 1e-6**2))
 	_gp_log("[run_2DGP_GRID] gp.compute finished in %.1f s" % (time.perf_counter() - _t0,))
 		
 	# wls_normed_range = np.sort(np.concatenate(( np.arange(1600.,3000., 40),
@@ -745,6 +836,26 @@ def run_2DGP_GRID(GP2DIM_Class, y_data_nonan, y_data_nonan_err, x1_data_norm, x2
 		)
 	)
 	_gp_log("[run_2DGP_GRID] done.")
+	_gp_log("[run_2DGP_GRID] gp parameter vector names: %s" % (gp.get_parameter_names(),))
+	_gp_log("[run_2DGP_GRID] gp parameter vector: %s" % (gp.get_parameter_vector(),))
+
+	maybe_save_gp_minimal_export(
+		GP2DIM_Class,
+		X=X,
+		y=y,
+		yerr=yerr,
+		y_compute=np.sqrt(yerr ** 2 + 1.0e-6 ** 2),
+		x1_fill=x1_fill,
+		x2_fill=x2_fill,
+		kernel_wls_scale=kernel_wls_scale,
+		kernel_time_scale=kernel_time_scale,
+		prior=prior,
+		points=points,
+		values=values,
+		grid_norm_info=GP2DIM_Class.grid_norm_info,
+		gp_module="GP2dim_utils_newlog",
+		kernel_layout="per_axis_Matern32_product",
+	)
 
 	return (x1_fill, x2_fill, mu_fill, std_fill)
 
@@ -774,8 +885,10 @@ def make_results_plots(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill):
 	plt.title('log10(wl): %.3f–%.3f'%(min(fit_wls[:int(len_wls/4)]*norm1),max(fit_wls[:int(len_wls/4)]*norm1)))
 	for i in fit_wls[:int(len_wls/4)]:
 		mask = x1_fill==i
-		plt.plot((x2_fill[mask])*norm2+offset2, scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
-				 lw=3, color=next(color), label='%.3f'%(i*norm1))
+		# plt.plot((x2_fill[mask])*norm2+offset2, scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
+		# 		 lw=3, color=next(color), label='%.3f'%(i*norm1))
+		plt.scatter((x2_fill[mask])*norm2+offset2, scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
+			 color=next(color), s=1, label='%.3f'%(i*norm1))
 	plt.xlabel('log10(phase days)')
 	plt.ylabel('flux (linear)')
 	plt.yscale('log')
@@ -783,8 +896,10 @@ def make_results_plots(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill):
 	plt.title('from %.1f to %.1f'%(min(fit_wls[int(len_wls/4):2*int(len_wls/4)]*norm1),max(fit_wls[int(len_wls/4):2*int(len_wls/4)]*norm1)))
 	for i in fit_wls[int(len_wls/4):2*int(len_wls/4)]:
 		mask = x1_fill==i
-		plt.plot((x2_fill[mask])*norm2+offset2, scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
-				 lw=3, color=next(color), label='%.3f'%(i*norm1))
+		# plt.plot((x2_fill[mask])*norm2+offset2, scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
+		# 		 lw=3, color=next(color), label='%.3f'%(i*norm1))
+		plt.scatter((x2_fill[mask])*norm2+offset2, scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
+			 color=next(color), s=1, label='%.3f'%(i*norm1))
 	plt.xlabel('log10(phase days)')
 	plt.ylabel('flux (linear)')
 	plt.yscale('log')
@@ -792,8 +907,10 @@ def make_results_plots(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill):
 	plt.title('from %.1f to %.1f'%(min(fit_wls[2*int(len_wls/4):3*int(len_wls/4)]*norm1),max(fit_wls[2*int(len_wls/4):3*int(len_wls/4)]*norm1)))
 	for i in fit_wls[2*int(len_wls/4):3*int(len_wls/4)]:
 		mask = x1_fill==i
-		plt.plot((x2_fill[mask])*norm2+offset2, scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
-				 lw=3, color=next(color), label='%.3f'%(i*norm1))
+		# plt.plot((x2_fill[mask])*norm2+offset2, scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
+		# 		 lw=3, color=next(color), label='%.3f'%(i*norm1))
+		plt.scatter((x2_fill[mask])*norm2+offset2, scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
+			 color=next(color), s=1, label='%.3f'%(i*norm1))
 	plt.xlabel('log10(phase days)')
 	plt.ylabel('flux (linear)')
 	plt.yscale('log')
@@ -802,8 +919,10 @@ def make_results_plots(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill):
 	for i in fit_wls[3*int(len_wls/4):int(len_wls)]:
 	
 		mask = x1_fill==i
-		plt.plot((x2_fill[mask])*norm2+offset2, scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
-				 lw=3, color=next(color), label='%.3f'%(i*norm1))
+		# plt.plot((x2_fill[mask])*norm2+offset2, scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
+		# 		 lw=3, color=next(color), label='%.3f'%(i*norm1))
+		plt.scatter((x2_fill[mask])*norm2+offset2, scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
+			 color=next(color), s=1, label='%.3f'%(i*norm1))
 	plt.xlabel('log10(phase days)')
 	plt.ylabel('flux (linear)')
 	plt.yscale('log')
@@ -826,10 +945,17 @@ def make_results_plots(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill):
 	plt.title('log10(wl): %.3f–%.3f' % (min(fit_wls[: int(len_wls / 4)] * norm1), max(fit_wls[: int(len_wls / 4)] * norm1)))
 	for i in fit_wls[: int(len_wls / 4)]:
 		mask = x1_fill == i
-		plt.plot(
+		# plt.plot(
+		# 	phase_days_from_norm_x2(x2_fill[mask], offset2, norm2),
+		# 	scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
+		# 	lw=3,
+		# 	color=next(color2),
+		# 	label='%.3f' % (i * norm1),
+		# )
+		plt.scatter(
 			phase_days_from_norm_x2(x2_fill[mask], offset2, norm2),
 			scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
-			lw=3,
+			s=1,
 			color=next(color2),
 			label='%.3f' % (i * norm1),
 		)
@@ -845,10 +971,17 @@ def make_results_plots(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill):
 	)
 	for i in fit_wls[int(len_wls / 4) : 2 * int(len_wls / 4)]:
 		mask = x1_fill == i
-		plt.plot(
+		# plt.plot(
+		# 	phase_days_from_norm_x2(x2_fill[mask], offset2, norm2),
+		# 	scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
+		# 	lw=3,
+		# 	color=next(color2),
+		# 	label='%.3f' % (i * norm1),
+		# )
+		plt.scatter(
 			phase_days_from_norm_x2(x2_fill[mask], offset2, norm2),
 			scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
-			lw=3,
+			s=1,
 			color=next(color2),
 			label='%.3f' % (i * norm1),
 		)
@@ -864,10 +997,18 @@ def make_results_plots(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill):
 	)
 	for i in fit_wls[2 * int(len_wls / 4) : 3 * int(len_wls / 4)]:
 		mask = x1_fill == i
-		plt.plot(
+		# plt.plot(
+		# 	phase_days_from_norm_x2(x2_fill[mask], offset2, norm2),
+		# 	scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
+		# 	lw=3,
+		# 	color=next(color2),
+		# 	label='%.3f' % (i * norm1),
+		# )
+
+		plt.scatter(
 			phase_days_from_norm_x2(x2_fill[mask], offset2, norm2),
 			scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
-			lw=3,
+			s=1,
 			color=next(color2),
 			label='%.3f' % (i * norm1),
 		)
@@ -883,10 +1024,17 @@ def make_results_plots(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill):
 	)
 	for i in fit_wls[3 * int(len_wls / 4) : int(len_wls)]:
 		mask = x1_fill == i
-		plt.plot(
+		# plt.plot(
+		# 	phase_days_from_norm_x2(x2_fill[mask], offset2, norm2),
+		# 	scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
+		# 	lw=3,
+		# 	color=next(color2),
+		# 	label='%.3f' % (i * norm1),
+		# )
+		plt.scatter(
 			phase_days_from_norm_x2(x2_fill[mask], offset2, norm2),
 			scaled_ln_to_linear(mu_fill[mask], offset, scale_factor),
-			lw=3,
+			s=1,
 			color=next(color2),
 			label='%.3f' % (i * norm1),
 		)
@@ -922,7 +1070,7 @@ def transform_back_andPlot(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill, y_
 	fig = plt.figure(1, figsize=(10,3))
 	x2_fill_phase = offset2 + norm2 * x2_fill
 	plt.subplot(121)
-	plt.scatter(x2_fill_phase, norm1*x1_fill, marker='s', s=10,  c=mu_fill_conv, alpha=1., 
+	plt.scatter(x2_fill_phase, norm1*x1_fill, marker='s', s=0.5,  c=mu_fill_conv, alpha=1., 
 				vmin=0., cmap = mycmap)
 	#plt.scatter(x2_data_norm, x1_data_norm, marker='s', c=y_data)
 	#plt.scatter(x2_data_norm, x1_data_norm, marker='s', c=y_data)
@@ -931,7 +1079,7 @@ def transform_back_andPlot(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill, y_
 	plt.colorbar()
 	
 	plt.subplot(122)
-	plt.scatter(x2_fill_phase, norm1*x1_fill, marker='s', s=10,  c=std_fill_conv, alpha=1., 
+	plt.scatter(x2_fill_phase, norm1*x1_fill, marker='s', s=0.5,  c=std_fill_conv, alpha=1., 
 				vmin=0., cmap = mycmap)
 	#plt.scatter(x2_data_norm, x1_data_norm, marker='s', c=y_data)
 	#plt.scatter(x2_data_norm, x1_data_norm, marker='s', c=y_data)
@@ -946,14 +1094,14 @@ def transform_back_andPlot(GP2DIM_Class, x1_fill, x2_fill, mu_fill, std_fill, y_
 	wl_lin_angstrom = np.power(10.0, norm1 * x1_fill)
 	fig_lin = plt.figure(figsize=(10, 3))
 	plt.subplot(121)
-	plt.scatter(phase_lin_days, wl_lin_angstrom, marker='s', s=10, c=mu_fill_conv, alpha=1.,
+	plt.scatter(phase_lin_days, wl_lin_angstrom, marker='s', s=0.5, c=mu_fill_conv, alpha=1.,
 				vmin=0., cmap=mycmap)
 	plt.xlabel('Phase (days)')
 	plt.ylabel('Wavelength (Å)')
 	cb = plt.colorbar()
 	cb.set_label('Linear flux')
 	plt.subplot(122)
-	plt.scatter(phase_lin_days, wl_lin_angstrom, marker='s', s=10, c=std_fill_conv, alpha=1.,
+	plt.scatter(phase_lin_days, wl_lin_angstrom, marker='s', s=0.5, c=std_fill_conv, alpha=1.,
 				vmin=0., cmap=mycmap)
 	plt.xlabel('Phase (days)')
 	plt.ylabel('Wavelength (Å)')
