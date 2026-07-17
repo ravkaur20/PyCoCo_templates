@@ -43,6 +43,29 @@ def _grid_norm_uses_zscore(gn: dict) -> bool:
 	return "norm1" not in gn and "x1_mean" in gn and "x2_mean" in gn
 
 
+def _train_obs_class_for_export(GP2DIM_Class, n_train: int, n_before_augment: int) -> np.ndarray | None:
+	"""Optional per-row phot/spec labels from the grid object, aligned to final training size.
+
+	If ``gp_2d_anchor_t0`` appended pseudo points, extend a length-``n_before_augment`` vector with
+	``phot`` rows so bundle IDs treat anchors like broad-band constraints (not extra spectroscopic epochs).
+	"""
+	if n_train <= 0:
+		return None
+	base = getattr(GP2DIM_Class, "train_obs_class", None)
+	if base is None:
+		base = getattr(GP2DIM_Class, "gp_train_obs_class", None)
+	if base is None:
+		return None
+	raw = np.asarray(base).ravel()
+	if raw.shape[0] == n_train:
+		return raw
+	if raw.shape[0] == n_before_augment and n_train > n_before_augment:
+		n_add = n_train - n_before_augment
+		tail = np.full(n_add, "phot", dtype="<U8")
+		return np.concatenate([np.asarray(raw, dtype="<U8"), tail])
+	return None
+
+
 def maybe_plot_rjf_mu_raw_vs_post(
 	GP2DIM_Class,
 	x1_fill,
@@ -140,6 +163,8 @@ def run_2DGP_GRID_rjf(
 		raise ImportError(
 			"grid_norm_info uses z-score coordinates but GP2dim_utils_newlog_zscore could not be imported."
 		)
+
+	n_before_augment = int(np.asarray(y_data_nonan).size)
 
 	if bool(getattr(GP2DIM_Class, "gp_2d_anchor_t0", False)):
 		_nu_before = int(np.unique(np.asarray(x1_data_norm, dtype=float)).size)
@@ -305,6 +330,10 @@ def run_2DGP_GRID_rjf(
 	if _log_progress:
 		_gp_log("[run_2DGP_GRID_rjf] collaborator done in %.1f s" % (time.perf_counter() - t0_inf,))
 
+	_export_obs = _train_obs_class_for_export(GP2DIM_Class, n_train, n_before_augment)
+	_obs_arg = getattr(GP2DIM_Class, "gp_export_train_obs_class", None)
+	if _obs_arg is None:
+		_obs_arg = _export_obs
 	maybe_save_gp_minimal_export(
 		GP2DIM_Class,
 		X=X,
@@ -321,7 +350,13 @@ def run_2DGP_GRID_rjf(
 		grid_norm_info=GP2DIM_Class.grid_norm_info,
 		gp_module="GP2dim_utils_newlog_rjf",
 		kernel_layout="collaborator_gp_rjf_matern_additive_opt",
+		train_obs_class=_obs_arg,
 	)
+	# Optional overrides on ``GP2DIM_Class``: ``gp_export_train_obs_class``,
+	# ``gp_export_spec_bundle_id``, ``gp_export_assign_spec_bundle_ids`` (see
+	# ``gp2dim_export.maybe_save_gp_minimal_export``); optional ``train_obs_class`` /
+	# ``gp_train_obs_class`` on the class are threaded above when lengths match (or after
+	# t0-anchor extension with ``phot`` tails).
 
 	if use_z and _gz is not None:
 		logwl_min = float(np.min(_gz.log10_wavelength_from_x1_norm(x1_fill, gn)))

@@ -1,0 +1,5 @@
+---
+description: Default stance on user factual claims until disproven with evidence.
+---
+
+When the user states a factual claim about their data, setup, or intent, treat it as **working truth** until you have **direct, checkable evidence** in the repository or from a reproducible command (code path, file contents, measured output). Prefer verifying with tools over debate; if evidence contradicts the claim, say so plainly and show the evidence.

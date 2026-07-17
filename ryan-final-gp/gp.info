@@ -1,0 +1,89 @@
+## Arrays in `gp_minimal_bundle.npz`
+
+Rows of `X` and `X_fill`: column 0 = normalized log10(wavelength), column 1 = normalized log10(phase days).
+(See `grid_norm_info` in the JSON for min-max or z-score conventions.)
+
+| Key | Description |
+|-----|-------------|
+| `X` | Training design matrix `(N_train, 2)`. |
+| `y` | Training targets (scaled ln-flux or scaled linear flux - matches the module you ran). |
+| `yerr` | Per-point 1# **before** the final diagonal tweak used in `compute` (floors applied). |
+| `y_compute` | **Diagonal passed to `gp.compute`**: ln-flux path uses `sqrt(yerr**2 + 1e-6**2)`; linear-flux path uses `yerr` unchanged. |
+| `X_fill` | Full prediction grid `(N_pred, 2)` (Cartesian product of wavelength nodes × phase columns). |
+| `kernel_wls_scale`, `kernel_time_scale` | Matern 3/2 length scales (as in the notebook / `run_2DGP_GRID`). |
+| `y_var_scale` | `np.var(y)` - multiplies the kernel in your pipeline. |
+| `white_noise_variance` | Jitter variance on the class (`gp_white_noise`). |
+| `white_noise_log` | `log(white_noise_variance)` when variance &gt; 0; else NaN (George keyword). |
+| `prior_used` | 0 or 1. |
+| `prior_points`, `prior_values` | Prior grid for the mean model (`nearest` `griddata`); empty if no prior. |
+
+```python
+import json
+import numpy as np
+import george
+from george.kernels import Matern32Kernel
+from george.modeling import Model
+from scipy.interpolate import griddata
+
+d = np.load("gp_minimal_bundle.npz", allow_pickle=False)
+with open("gp_minimal_bundle_meta.json", encoding="utf-8") as f:
+    meta = json.load(f)
+
+X = d["X"]
+y = d["y"]
+y_compute = d["y_compute"]
+X_fill = d["X_fill"]
+lw, lt = float(d["kernel_wls_scale"]), float(d["kernel_time_scale"])
+yv = float(d["y_var_scale"])
+wn = float(d["white_noise_variance"])
+
+prior_used = int(d["prior_used"]) == 1
+prior_pts = np.asarray(d["prior_points"], dtype=float)
+prior_val = np.asarray(d["prior_values"], dtype=float)
+
+k_wave = Matern32Kernel(metric=lw, ndim=2, axes=1)
+k_time = Matern32Kernel(metric=lt, ndim=2, axes=0)
+kernel = yv * (k_wave * k_time)
+
+gp_kwargs = {}
+if wn > 0.0:
+    gp_kwargs["white_noise"] = float(np.log(wn))
+
+# Prior mean (matches run_2DGP_GRID / Model_2dim: nearest griddata, NaN -> 0)
+if prior_used and prior_pts.size and prior_val.size:
+    class PriorMeanModel(Model):
+        parameter_names = ()
+
+        def get_value(self, t):
+            pts = np.asarray(prior_pts, dtype=float)
+            vals = np.asarray(prior_val, dtype=float)
+            pe = np.column_stack((t[:, 0], t[:, 1]))
+            z = griddata(pts, vals, pe, method="nearest")
+            z = np.where(np.isnan(z), 0.0, z)
+            return z
+
+    gp = george.GP(kernel, mean=PriorMeanModel(), **gp_kwargs)
+else:
+    gp = george.GP(kernel, **gp_kwargs)
+
+gp.compute(X, y_compute)
+
+The pipeline chunks `predict` only to limit peak memory. If `X_fill` fits in RAM, call:
+
+```python
+mu, var = gp.predict(y, X_fill, return_var=True)
+std = np.sqrt(np.maximum(var, 0.0))
+```
+
+**Memory:** `X_fill` is `(N_pred, 2)` float64; `mu` and `var` add two more length-`N_pred` vectors. Rough order of magnitude: `N_pred × 8 × (2 + 1 + 1)` bytes for those alone, plus George's internal buffers. For very large grids this can exceed machine RAM-then chunk explicitly:
+
+```python
+mu = np.empty(len(X_fill), dtype=float)
+var = np.empty(len(X_fill), dtype=float)
+chunk = 50_000
+for s0 in range(0, len(X_fill), chunk):
+    s1 = min(s0 + chunk, len(X_fill))
+    m, v = gp.predict(y, X_fill[s0:s1], return_var=True)
+    mu[s0:s1] = m
+    var[s0:s1] = v
+std = np.sqrt(np.maximum(var, 0.0))

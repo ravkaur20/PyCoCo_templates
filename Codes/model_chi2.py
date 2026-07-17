@@ -294,6 +294,7 @@ def resolve_final_data_dir(
     data_dir: str | None,
     final_variant: str,
     use_rjf: bool,
+    use_ryanv2: bool = False,
 ) -> str:
     """Same FINAL layout as ``model_comparison.ipynb`` when ``data_dir`` is None."""
     if data_dir:
@@ -304,7 +305,8 @@ def resolve_final_data_dir(
     tw = pconf.final_spectra_twodim_branch(
         pconf.MODE_EXTRAPOLATE_SHORT,
         pconf.SUBDIR_FULL_GP,
-        use_rjf=use_rjf,
+        use_rjf=use_rjf and not use_ryanv2,
+        use_ryanv2=use_ryanv2,
     )
     return resolve_final_directory(
         coco_path, sn_name, final_variant, twodim_branch=tw
@@ -404,6 +406,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_false",
         dest="use_rjf_final",
         help="Disable RJF branch for resolve_final_directory",
+    )
+    p.add_argument(
+        "--ryanv2-final",
+        action="store_true",
+        default=False,
+        help="Use twodim_ryanv2 FINAL branch (overrides --use-rjf-final for path resolution)",
     )
     p.add_argument(
         "--t0-mjd",
@@ -550,6 +558,7 @@ def main(argv: list[str] | None = None) -> int:
             data_dir=args.data_dir,
             final_variant=args.final_variant,
             use_rjf=args.use_rjf_final,
+            use_ryanv2=args.ryanv2_final,
         )
         phase_list = parse_target_phases(args.target_phases)
         print("FINAL dir:", data_dir)

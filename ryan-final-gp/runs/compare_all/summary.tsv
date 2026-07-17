@@ -1,0 +1,7 @@
+tag	log_lik	sigma_phot	sigma_spec	metric_w	metric_t	extra_w	extra_t	chi2_phot	chi2_spec
+matern32_nearest_baseline_jitter	25832.86	0.02	0.01	0.01	0.04			0.181	0.566
+matern52_linear_opt	31790.77	0.006318	1.248e-05	0.57	0.2896			0.762	1.185
+expsq_linear_opt	31474.27	0.006854	0.0004976	0.1354	0.1006			0.817	1.248
+rq_linear_opt	31642.70	0.006488	0.0004399	0.5512	0.1909			0.773	1.225
+matern52_addw_linear_opt	32263.25	0.006243	8.165e-06	0.0003355	0.2916	metric_w2=3.245, w_short=0.004		0.700	1.081
+matern52_addw_addt_linear_opt	32377.78	0.005958	6.144e-06	0.0003355	0.06093	metric_w2=3.161, w_short=0.006	metric_t2=2.79, w_short=0.131	0.696	1.044

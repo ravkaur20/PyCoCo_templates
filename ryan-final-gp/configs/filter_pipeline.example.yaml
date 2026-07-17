@@ -1,0 +1,14 @@
+# Example config for filter_synthesis.load_filter_config()
+# PYSYN_CDBS should point at a directory whose child "grp/" matches TRDS layout
+# (e.g. .../trds with grp/redcat/trds/comp/nonhst/... under it).
+
+trds_roots:
+  - /Users/rfoley/pysynphot/trds
+
+# Map catalogue / table band strings -> pysynphot ObsBandpass string (see pysynphot docs).
+# If a band is absent here, the resolver tries the key itself as ObsBandpass name.
+band_aliases:
+  example_wfc3_f110w: wfc3,ir,f110w
+  example_acs_f220w: ACS,HRC,F220W
+
+photometry_system: ab

@@ -1,0 +1,8 @@
+{
+  "iteration": 0,
+  "n_total": 8789,
+  "n_flagged": 0,
+  "z_threshold": 5.0,
+  "flagged_train_indices": [],
+  "norm_resid_at_flagged": []
+}

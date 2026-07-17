@@ -21,7 +21,8 @@ This document describes the kilonova (KN) processing chain under [`Codes/`](.), 
 | 2 | [`2_LC_modelRising_KN_fullfit_log.ipynb`](2_LC_modelRising_KN_fullfit_log.ipynb) | Early-time LC extrapolation (log-aware fullfit). |
 | 3 | [`3_LC_modelExpDecay_KN.ipynb`](3_LC_modelExpDecay_KN.ipynb) | *Optional; skipped in current workflow* — see note above. |
 | 4 | [`4_LCfit_KN_log.ipynb`](4_LCfit_KN_log.ipynb) | GP LC fit in log space; feeds Outputs. |
-| 5 | [`5_Mangle_spectra_KN_log.ipynb`](5_Mangle_spectra_KN_log.ipynb) | Mangle in log λ / log F space. |
+| **4.5** | [`4.5_Scale_spectra_KN.ipynb`](4.5_Scale_spectra_KN.ipynb) | **Pre-scale** spectroscopic arms / same-time groups (`scale_only` default). See [`docs/PHASE1_PRESCALE.md`](docs/PHASE1_PRESCALE.md). |
+| 5 | [`5_Mangle_spectra_KN_log.ipynb`](5_Mangle_spectra_KN_log.ipynb) | Mangle in log λ / log F space (reads prescaled list when present). |
 | 6 | [`6_TwoDim_UVExtend_Extrapolate_KN_newlog.ipynb`](6_TwoDim_UVExtend_Extrapolate_KN_newlog.ipynb) | 2D GP via [`GP2dim_utils_newlog.py`](GP2dim_utils_newlog.py). Alternate: [`6_TwoDim_UVExtend_Extrapolate_KN_log.ipynb`](6_TwoDim_UVExtend_Extrapolate_KN_log.ipynb) uses `GP2dim_utils`. |
 | 7 | [`7_Rimangle_KN_log.ipynb`](7_Rimangle_KN_log.ipynb) | Re-mangle + FINAL products; [`rimangle_log_spectrum.py`](rimangle_log_spectrum.py). |
 | 7.5 | [`7.5_comparison_check_log.ipynb`](7.5_comparison_check_log.ipynb) | Validation vs photometry and spectra; [`comparison_check_log_utils.py`](comparison_check_log_utils.py). |

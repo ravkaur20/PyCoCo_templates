@@ -1,0 +1,10 @@
+{
+  "comment": "Indices match plot_separated_training_data.py spec_NNN filenames (sorted spec phases, same atol).",
+  "spec_plot_phase_atol": 0,
+  "phot_spec_threshold": 50,
+  "force_phot_spec_plot_indices": [
+    0, 2, 4, 7, 9, 11, 13, 14, 16, 19, 21, 22, 25, 27, 28, 30, 32, 34, 36, 38,
+    41, 42, 45, 47, 48, 50, 52, 55, 57, 58, 61, 63, 64, 67, 68, 70, 73, 75
+  ],
+  "telluric_spec_plot_indices": [17, 44, 60, 65]
+}

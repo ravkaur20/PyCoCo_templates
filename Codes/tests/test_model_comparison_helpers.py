@@ -35,6 +35,7 @@ def test_hdf5_exists():
 
 
 def test_load_shapes(blob):
+    assert blob.get("reference_distance_mpc") == pytest.approx(1.0)
     I = blob["I_stokes"]
     assert I.ndim == 3
     n_obs, n_t, n_w = I.shape
@@ -101,6 +102,35 @@ def test_scaling_finite(blob):
     y = scale_bulla_intensity_to_observer(x, z=0.01, d_lum_mpc=40.0)
     assert np.all(np.isfinite(y))
     assert y[0] > 0
+
+
+def test_scale_bulla_reference_distance_ratio():
+    from model_comparison_helpers import scale_bulla_intensity_to_observer
+
+    x = np.array([100.0])
+    z = 0.02
+    d = 43.7
+    y_pc = scale_bulla_intensity_to_observer(
+        x, z, d, reference_distance_mpc=1e-5
+    )
+    y_1mpc = scale_bulla_intensity_to_observer(
+        x, z, d, reference_distance_mpc=1.0
+    )
+    assert y_pc.shape == y_1mpc.shape
+    assert float(y_1mpc[0]) == pytest.approx(float(y_pc[0]) * (1.0 / 1e-5) ** 2)
+
+
+def test_scale_bulla_rejects_nonpositive_distance():
+    from model_comparison_helpers import scale_bulla_intensity_to_observer
+
+    with pytest.raises(ValueError, match="reference_distance_mpc"):
+        scale_bulla_intensity_to_observer(
+            np.ones(1), z=0.01, d_lum_mpc=40.0, reference_distance_mpc=0.0
+        )
+    with pytest.raises(ValueError, match="reference_distance_mpc"):
+        scale_bulla_intensity_to_observer(
+            np.ones(1), z=0.01, d_lum_mpc=-1.0, reference_distance_mpc=1.0
+        )
 
 
 def test_wave_observer():
@@ -372,3 +402,195 @@ def test_pooled_chi2_rejects_bad_uncertainty_scale(blob):
         pooled_chi2_all_epochs_angles(
             blob, [], z=0.01, d_lum_mpc=40.0, uncertainty_scale=-1.0
         )
+
+
+BULLA2019_TXT = os.path.join(
+    _REPO,
+    "2019_bulla",
+    "nph1.0e+06_mej0.04_phi15_T7.0e+03.txt",
+)
+
+
+def test_load_bulla2019_txt_shape():
+    if not os.path.isfile(BULLA2019_TXT):
+        pytest.skip("2019 Bulla txt fixture not in repo")
+
+    from model_comparison_helpers import load_bulla2019_txt
+
+    b = load_bulla2019_txt(BULLA2019_TXT)
+    I = b["I_stokes"]
+    assert I.ndim == 3
+    n_obs, n_t, n_w = I.shape
+    assert n_obs >= 2 and n_t >= 2 and n_w >= 2
+    assert b["time_days"].shape == (n_t,)
+    assert np.all(np.diff(b["time_days"]) > 0)
+    assert b["wave_rest"].shape == (n_w,)
+    np.testing.assert_allclose(
+        np.min(b["wave_rest"]), b["wave_rest"][0], rtol=0, atol=1e-6
+    )
+    np.testing.assert_allclose(
+        np.max(b["wave_rest"]), b["wave_rest"][-1], rtol=0, atol=1e-6
+    )
+    assert b.get("reference_distance_mpc") == pytest.approx(1e-5)
+
+
+def test_prepare_epochs_overlap_drops_time_oob():
+    from model_comparison_helpers import prepare_epochs_overlap
+
+    blob = {
+        "I_stokes": np.zeros((2, 3, 10)),
+        "time_days": np.array([0.0, 1.5, 3.1]),
+        "wave_rest": np.linspace(3000.0, 9000.0, 10),
+    }
+    ep_in = [
+        {
+            "wl_data": np.array([5000.0, 7200.0]),
+            "F_data": np.ones(2),
+            "fe_data": np.ones(2),
+            "phase_model_days": 1.5,
+        }
+    ]
+    ep_out = ep_in + [
+        {
+            "wl_data": np.array([6000.0]),
+            "F_data": np.ones(1),
+            "fe_data": np.ones(1),
+            "phase_model_days": 999.0,
+        }
+    ]
+    z = 0.0
+    t1 = prepare_epochs_overlap(blob, ep_in, z=z, wave_is_rest=False, min_pix_per_epoch=1)
+    t2 = prepare_epochs_overlap(blob, ep_out, z=z, wave_is_rest=False, min_pix_per_epoch=1)
+    assert len(t1) == 1 and len(t2) == 1
+
+
+def test_prepare_epochs_overlap_trims_wavelength_and_drops_sparse():
+    from model_comparison_helpers import prepare_epochs_overlap
+
+    blob = {
+        "I_stokes": np.zeros((2, 2, 4)),
+        "time_days": np.array([0.0, 2.0]),
+        "wave_rest": np.linspace(4000.0, 8000.0, 4),
+    }
+    z = 0.0
+    ep = [
+        {
+            "wl_data": np.array([2000.0, 5000.0, 10000.0]),
+            "F_data": np.array([1.0, 2.0, 3.0]),
+            "fe_data": np.full(3, 0.1),
+            "phase_model_days": 1.0,
+        }
+    ]
+    out = prepare_epochs_overlap(blob, ep, z=z, wave_is_rest=False, min_pix_per_epoch=1)
+    assert len(out) == 1
+    assert np.array_equal(out[0]["wl_data"], np.array([5000.0]))
+    assert out[0]["F_data"][0] == pytest.approx(2.0)
+    out_min2 = prepare_epochs_overlap(
+        blob, ep, z=z, wave_is_rest=False, min_pix_per_epoch=2
+    )
+    assert len(out_min2) == 0
+
+
+def test_pooled_restrict_to_overlap_matches_prepare_then_pool(blob):
+    from model_comparison_helpers import (
+        prepare_epochs_overlap,
+        pooled_chi2_all_epochs_angles,
+    )
+
+    z = 0.00984
+    d = 43.0
+    ph = float(np.median(blob["time_days"]))
+    n_obs = blob["I_stokes"].shape[0]
+    from model_comparison_helpers import model_flux_for_epoch_and_angle
+
+    wl_m, F_ref, _ = model_flux_for_epoch_and_angle(
+        blob,
+        obs_index=n_obs // 2,
+        phase_days_target=ph,
+        z=z,
+        d_lum_mpc=d,
+        time_interp=True,
+    )
+    w_rest = blob["wave_rest"]
+    wl_obs = w_rest * (1.0 + z)
+    wl_d = wl_obs[(wl_obs >= np.min(wl_m)) & (wl_obs <= np.max(wl_m))][::5]
+    if wl_d.size < 5:
+        pytest.skip("wavelength overlap too small")
+    from model_comparison_helpers import interp_model_flux_to_wavelengths
+
+    F_d = interp_model_flux_to_wavelengths(wl_m, F_ref, wl_d)
+    fe = 0.1 * np.abs(F_d) + 1e-30
+    epochs = [
+        {
+            "wl_data": wl_d,
+            "F_data": F_d,
+            "fe_data": fe,
+            "phase_model_days": ph,
+        },
+        {
+            "wl_data": wl_d,
+            "F_data": F_d,
+            "fe_data": fe,
+            "phase_model_days": 1.0e6,
+        },
+    ]
+    c_a, n_a = pooled_chi2_all_epochs_angles(
+        blob,
+        epochs,
+        z=z,
+        d_lum_mpc=d,
+        time_interp=True,
+        obs_indices=[n_obs // 2],
+        restrict_to_overlap=True,
+        min_pix_per_epoch=1,
+    )
+    ep_trim = prepare_epochs_overlap(
+        blob, epochs, z=z, wave_is_rest=True, min_pix_per_epoch=1
+    )
+    c_b, n_b = pooled_chi2_all_epochs_angles(
+        blob,
+        ep_trim,
+        z=z,
+        d_lum_mpc=d,
+        time_interp=True,
+        obs_indices=[n_obs // 2],
+        restrict_to_overlap=False,
+    )
+    assert c_a == pytest.approx(c_b)
+    assert n_a == n_b
+    assert n_a > 0
+
+
+def test_pooled_overlap_with_2019_txt():
+    if not os.path.isfile(BULLA2019_TXT):
+        pytest.skip("2019 Bulla txt fixture not in repo")
+    from model_comparison_helpers import load_bulla2019_txt, pooled_chi2_all_epochs_angles
+
+    b2019 = load_bulla2019_txt(BULLA2019_TXT)
+    z = 0.01
+    d = 40.0
+    ph = float(np.median(b2019["time_days"]))
+    wl_mod = b2019["wave_rest"] * (1.0 + z)
+    wl_d = np.linspace(float(np.min(wl_mod)), float(np.max(wl_mod)), 30)
+    F_d = np.ones_like(wl_d) * 1e-18
+    fe = np.full_like(wl_d, 1e-19)
+    epochs = [
+        {
+            "wl_data": wl_d,
+            "F_data": F_d,
+            "fe_data": fe,
+            "phase_model_days": ph,
+        }
+    ]
+    c2, n = pooled_chi2_all_epochs_angles(
+        b2019,
+        epochs,
+        z=z,
+        d_lum_mpc=d,
+        wave_is_rest=True,
+        time_interp=True,
+        obs_indices=[0],
+        restrict_to_overlap=True,
+        min_pix_per_epoch=3,
+    )
+    assert np.isfinite(c2) and n >= 3

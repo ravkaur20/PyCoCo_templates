@@ -1,0 +1,409 @@
+{
+  "trds_roots_tried": [
+    "/Users/rfoley/pysynphot/trds"
+  ],
+  "pysyn_cdbS_effective": "/Users/rfoley/pysynphot/trds",
+  "pysynphot_import_error": null,
+  "bands_used": [],
+  "bands_skipped_missing": [
+    {
+      "band_key": "log10\u03bb_norm\u2248-2.4729",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-2.4729",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-2.1722",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-2.1722",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-1.6787",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-1.6787",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.9758",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.9758",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.8217",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.8217",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.6295",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.6295",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.2563",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.2563",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.8767",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.8767",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22480.3598",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22480.3598",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22480.6586",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22480.6586",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22480.3003",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22480.3003",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22480.6763",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22480.6763",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22481.1459",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22481.1459",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22480.6562",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22480.6562",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22481.1776",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22481.1776",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22481.6622",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22481.6622",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22481.6707",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22481.6707",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22481.6735",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22481.6735",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22481.6655",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22481.6655",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.2308",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.2308",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.1889",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.1889",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22480.1039",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22480.1039",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22480.0011",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22480.0011",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22480.0496",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22480.0496",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22480.1926",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22480.1926",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-1.1065",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-1.1065",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.6064",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.6064",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.2002",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.2002",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22480.6650",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22480.6650",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22481.1580",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22481.1580",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-1.1703",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-1.1703",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-1.0831",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-1.0831",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.6109",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.6109",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.2330",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.2330",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22480.0656",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22480.0656",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22481.6847",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22481.6847",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-1.5079",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-1.5079",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22480.2427",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22480.2427",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22481.1592",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22481.1592",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-1.2434",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-1.2434",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-1.0958",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-1.0958",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-1.0767",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-1.0767",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.6060",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.6060",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.5493",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.5493",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.2593",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.2593",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.8808",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.8808",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22480.0037",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22480.0037",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22480.6786",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22480.6786",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.5787",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.5787",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.1969",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.1969",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.5198",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.5198",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-1.3135",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-1.3135",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.8357",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.8357",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u2248-0.1529",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u2248-0.1529",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22480.0742",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22480.0742",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22481.6609",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22481.6609",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    },
+    {
+      "band_key": "log10\u03bb_norm\u22481.6659",
+      "reason": "MISSING_FILTER",
+      "pysyn_name_tried": "log10\u03bb_norm\u22481.6659",
+      "detail": "TypeError('initializing GraphTable with GFile=None; possible bad/missing PYSYN_CDBS')",
+      "trds_root": "/Users/rfoley/pysynphot/trds"
+    }
+  ]
+}

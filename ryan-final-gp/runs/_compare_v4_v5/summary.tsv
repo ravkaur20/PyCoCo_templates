@@ -1,0 +1,3 @@
+tag	log_lik	sigma_phot	sigma_spec	metric_w	metric_t	extra_w	extra_t	chi2_phot	chi2_spec
+matern52_addw_addt_linear_opt_v4	32111.91	0.012	6.321e-06	0.002479	0.07487	metric_w2=3.706, w_short=0.009	metric_t2=3.086, w_short=0.110	0.379	1.089
+matern52_addw_addt_linear_opt_v5	29320.44	0.012	0.005	0.02578	0.1256	metric_w2=5.899, w_short=0.003	metric_t2=7.225, w_short=0.027	0.422	0.860

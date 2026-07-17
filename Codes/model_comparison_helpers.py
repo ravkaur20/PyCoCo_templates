@@ -1,6 +1,11 @@
-"""Helpers for comparing PyCoCo FINAL spectra to Bulla (2023) POSSIS HDF5 models.
+"""Helpers for comparing PyCoCo FINAL spectra to Bulla POSSIS models.
 
-See ``2023_bulla/make_lcs_hdf5.py`` for the on-disk layout and flux scaling convention.
+HDF5 layout and scaling convention: ``2023_bulla/make_lcs_hdf5.py`` (native spectral
+density referenced at **1 Mpc**, ``F_obs ∝ native × (1/D_L)² / (1+z)``).
+
+2019 ASCII (``2019_bulla/README``, ``load_bulla2019_txt``): natives are flux at **10 pc**
+(**10⁻⁵ Mpc**); use ``reference_distance_mpc=1e-5`` → ``make_lcs.py``-consistent
+``(10⁻⁵/D_L)²/(1+z)``. See ``scale_bulla_intensity_to_observer``.
 """
 
 from __future__ import annotations
@@ -48,7 +53,152 @@ def load_bulla_observables(path: str) -> dict[str, Any]:
         "wave_rest": wave,
         "lbol": lbol,
         "stokes_shape": stokes.shape,
+        # Native spectral flux corresponds to luminosity-distance reference used in
+        # ``make_lcs_hdf5.py`` (scaling ``(1/D_Mpc)**2``, i.e. D_ref ≈ 1 Mpc).
+        "reference_distance_mpc": 1.0,
     }
+
+
+def load_bulla2019_txt(path: str) -> dict[str, Any]:
+    """Load a Dhawan et al. (2019) Bulla-format ``.txt`` spectral cube.
+
+    Header (first three lines): ``Nobs``, ``Nwave``, then
+    ``Ntime t_i t_f`` (days). Data start on line 4: for each viewing angle
+    a block of ``Nwave`` rows; column 0 is rest wavelength (Å), columns
+    ``1 … Ntime`` are flux F_λ (erg s⁻¹ cm⁻² Å⁻¹) at **10 pc** (``10^{-5}`` Mpc);
+
+    On load, ``reference_distance_mpc`` is **1e-5** so ``scale_bulla_intensity_to_observer``
+    matches ``2019_bulla/make_lcs.py``.
+
+    Bin centers in time are ``t_i + Dt * (it + 0.5)`` with
+    ``Dt = (t_f - t_i) / Ntime`` (README). Viewing-angle rows follow
+
+    cos θ linearly from 0 to 1 (`cos_theta_to_theta_deg`).
+    """
+    path = os.path.abspath(path)
+    if not os.path.isfile(path):
+        raise FileNotFoundError(path)
+    with open(path, "r", encoding="utf-8", errors="replace") as f:
+        raw0, raw1, raw2 = f.readline(), f.readline(), f.readline()
+    try:
+        n_obs = int(float(raw0.split()[0]))
+        n_wave = int(float(raw1.split()[0]))
+        p2 = raw2.split()
+        n_time = int(float(p2[0]))
+        t_i = float(p2[1])
+        t_f = float(p2[2])
+    except (IndexError, ValueError) as ex:
+        raise ValueError("Invalid header in %s" % path) from ex
+
+    a = np.genfromtxt(path, skip_header=3)
+    rows_needed = int(n_obs) * int(n_wave)
+    if a.ndim != 2:
+        raise ValueError("Expected 2D numeric table in %s after header" % path)
+    if int(a.shape[0]) < rows_needed:
+        raise ValueError(
+            "Need at least %d data rows in %s, got %d"
+            % (rows_needed, path, int(a.shape[0]))
+        )
+    n_col = int(a.shape[1])
+    if n_col < int(n_time) + 1:
+        raise ValueError(
+            "%s: need ≥ 1 + %d columns for flux, got %d"
+            % (path, int(n_time), n_col)
+        )
+
+    wave_rest = np.asarray(a[0:n_wave, 0], dtype=float)
+    I_stokes = np.empty((n_obs, n_time, n_wave), dtype=float)
+    for obs in range(n_obs):
+        sl = slice(obs * n_wave, (obs + 1) * n_wave)
+        block = np.asarray(a[sl, :], dtype=float)
+        wave_b = np.asarray(block[:, 0], dtype=float)
+        if obs > 0 and not np.allclose(wave_b, wave_rest, rtol=0.0, atol=1.0):
+            warnings.warn(
+                "Wavelength column differs in observer block %d of %s "
+                "(continuing with first block grid)."
+                % (obs, os.path.basename(path)),
+                UserWarning,
+                stacklevel=2,
+            )
+        flux_bt = block[:, 1 : 1 + n_time].astype(float)
+        I_stokes[obs, :, :] = flux_bt.T
+
+    dt = (t_f - t_i) / float(n_time)
+    time_days = t_i + dt * (np.arange(n_time, dtype=float) + 0.5)
+    return {
+        "I_stokes": I_stokes,
+        "time_days": time_days,
+        "wave_rest": wave_rest,
+        "source": "bulla2019_txt",
+        "path": path,
+        "reference_distance_mpc": 1e-5,
+    }
+
+
+def observer_wavelength_bounds(
+    blob: dict[str, Any],
+    z: float,
+    *,
+    wave_is_rest: bool = True,
+) -> tuple[float, float]:
+    """Min/max observer-frame wavelength (Å) over the model spectral grid."""
+    w_rest = blob["wave_rest"]
+    wl_obs = (
+        wave_rest_to_observer(w_rest, z)
+        if wave_is_rest
+        else np.asarray(w_rest, dtype=float)
+    )
+    return float(np.min(wl_obs)), float(np.max(wl_obs))
+
+
+def prepare_epochs_overlap(
+    blob: dict[str, Any],
+    epochs: list[dict[str, Any]],
+    *,
+    z: float,
+    wave_is_rest: bool = True,
+    min_pix_per_epoch: int = 3,
+) -> list[dict[str, Any]]:
+    """
+    Keep only epochs whose ``phase_model_days`` lies inside the model time grid
+    (inclusive endpoints, matching :func:`interpolate_model_along_time_regular`).
+
+    For each kept epoch, subset ``(wl_data, F_data, fe_data)`` to wavelengths
+    overlapping the observer-frame model grid. Epochs with fewer than
+    ``min_pix_per_epoch`` finite overlap pixels are dropped. Other keys on each
+    epoch dict are preserved.
+    """
+    tmod = np.asarray(blob["time_days"], dtype=float)
+    t_lo = float(np.min(tmod))
+    t_hi = float(np.max(tmod))
+    wl_lo_mod, wl_hi_mod = observer_wavelength_bounds(blob, z, wave_is_rest=wave_is_rest)
+    need = int(min_pix_per_epoch)
+    if need < 1:
+        raise ValueError("min_pix_per_epoch must be >= 1")
+
+    out: list[dict[str, Any]] = []
+    for ep in epochs:
+        ph = float(ep["phase_model_days"])
+        if ph < t_lo or ph > t_hi:
+            continue
+        wl_d = np.asarray(ep["wl_data"], dtype=float)
+        F_d = np.asarray(ep["F_data"], dtype=float)
+        fe_d = np.asarray(ep["fe_data"], dtype=float)
+        mask = (
+            np.isfinite(wl_d)
+            & np.isfinite(F_d)
+            & np.isfinite(fe_d)
+            & (wl_d >= wl_lo_mod)
+            & (wl_d <= wl_hi_mod)
+        )
+        if int(np.count_nonzero(mask)) < need:
+            continue
+        trimmed = dict(ep)
+        trimmed["wl_data"] = wl_d[mask]
+        trimmed["F_data"] = F_d[mask]
+        trimmed["fe_data"] = fe_d[mask]
+        out.append(trimmed)
+    return out
 
 
 def cos_theta_to_theta_deg(n_obs: int) -> tuple[np.ndarray, np.ndarray]:
@@ -96,10 +246,28 @@ def scale_bulla_intensity_to_observer(
     I_native: np.ndarray,
     z: float,
     d_lum_mpc: float,
+    *,
+    reference_distance_mpc: float = 1.0,
 ) -> np.ndarray:
-    """Same scaling as ``make_lcs_hdf5.py`` line 108."""
+    """
+    Map native spectral flux density F_lambda to the cosmological observer.
 
-    return I_native * (1.0 / float(d_lum_mpc)) ** 2 / (1.0 + float(z))
+    ``reference_distance_mpc`` is **D_ref** (Mpc) such that natives are defined at
+    distance **D_ref**; observer flux scales as native **times** ``(D_ref / D_L)² /
+    (1+z)``.
+
+    HDF5 loaders set **D_ref = 1** (``make_lcs_hdf5.py``).
+    2019 ASCII loaders set **D_ref = 1e-5** (**10 pc**; ``make_lcs.py``).
+    """
+    pref = float(reference_distance_mpc)
+    dl = float(d_lum_mpc)
+    if pref <= 0 or dl <= 0:
+        raise ValueError(
+            "reference_distance_mpc and d_lum_mpc must be positive (got pref=%s, dl=%s)"
+            % (pref, dl)
+        )
+    arr = np.asarray(I_native, dtype=float)
+    return arr * (pref / dl) ** 2 / (1.0 + float(z))
 
 
 def wave_rest_to_observer(wave_rest: np.ndarray, z: float) -> np.ndarray:
@@ -181,7 +349,9 @@ def model_flux_for_epoch_and_angle(
     """
     Return (wl_obs_angstrom, F_lambda_observer, itime_nearest_or_used).
 
-    ``F_lambda_observer`` uses the same native→observer scaling as ``make_lcs_hdf5``.
+    ``F_lambda_observer`` scales natives with ``scale_bulla_intensity_to_observer`` using
+    ``blob['reference_distance_mpc']`` (**1 Mpc** for HDF5 — ``make_lcs_hdf5``;
+    **10⁻⁵ Mpc** for 2019 ASCII — ``make_lcs``).
     """
     I = blob["I_stokes"]
     if obs_index < 0 or obs_index >= I.shape[0]:
@@ -195,7 +365,10 @@ def model_flux_for_epoch_and_angle(
     else:
         it = nearest_time_index(t, phase_days_target)
         F_native = cube[it].astype(float)
-    F_obs = scale_bulla_intensity_to_observer(F_native, z, d_lum_mpc)
+    ref_mpc = float(blob.get("reference_distance_mpc", 1.0))
+    F_obs = scale_bulla_intensity_to_observer(
+        F_native, z, d_lum_mpc, reference_distance_mpc=ref_mpc
+    )
     it_used = (
         nearest_time_index(t, phase_days_target) if not time_interp else -1
     )
@@ -256,6 +429,8 @@ def pooled_chi2_all_epochs_angles(
     time_interp: bool = True,
     uncertainty_scale: float = 1.0,
     obs_indices: Sequence[int] | None = None,
+    restrict_to_overlap: bool = False,
+    min_pix_per_epoch: int = 3,
 ) -> tuple[float, int]:
     """
     Sum χ² and effective pixel counts over every epoch in ``epochs``.
@@ -265,6 +440,11 @@ def pooled_chi2_all_epochs_angles(
     skipped). Each epoch dict needs ``wl_data``, ``F_data``, ``fe_data``,
     ``phase_model_days``. Data σ are multiplied by ``uncertainty_scale`` before
     ``chi2_flux``.
+
+    With ``restrict_to_overlap=True``, only epochs/phases inside the model time
+    extent are used and each epoch is wavelength-trimmed to the intersection of
+    data pixels with the observer-frame model spectral range (via
+    :func:`prepare_epochs_overlap`).
     """
     if uncertainty_scale <= 0:
         raise ValueError("uncertainty_scale must be > 0")
@@ -280,8 +460,17 @@ def pooled_chi2_all_epochs_angles(
                 oi_loop.append(ii)
         if not oi_loop:
             return 0.0, 0
+    eps = epochs
+    if restrict_to_overlap:
+        eps = prepare_epochs_overlap(
+            blob,
+            epochs,
+            z=z,
+            wave_is_rest=wave_is_rest,
+            min_pix_per_epoch=min_pix_per_epoch,
+        )
     tot_c2, tot_n = 0.0, 0
-    for ep in epochs:
+    for ep in eps:
         wl_d = np.asarray(ep["wl_data"], dtype=float)
         F_d = np.asarray(ep["F_data"], dtype=float)
         fe_d = np.asarray(ep["fe_data"], dtype=float) * sc

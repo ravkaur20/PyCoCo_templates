@@ -53,6 +53,36 @@ USE_TWO_D_GP_ZSCORE_COORDS: bool = True
 # force export even when this is False.
 GP_EXPORT_MINIMAL: bool = True
 GP_EXPORT_SUBDIR: str = "gp_minimal_export"
+# When True, ``gp2dim_export.save_gp_minimal_bundle`` adds ``spec_bundle_id`` (and usually
+# ``train_obs_class``) via ``ryan_gp/spec_bundle_id_assign.py`` so ``iterate_gp_surface_bundle_scale``
+# and collaborator ``run_gp`` layouts match. Set False only for legacy minimal NPZ without IDs.
+GP_EXPORT_SPEC_BUNDLE_IDS: bool = True
+# Defaults aligned with ``ryan_gp`` bundle_scale_pipeline / ``run_gp`` phot vs spec heuristic.
+GP_EXPORT_PHOT_SPEC_THRESHOLD: int = 50
+GP_EXPORT_MAX_BUNDLE_MINUTES: float = 5.0
+
+# ---------------------------------------------------------------------------
+# Ryan ``iterate_gp_surface_bundle_scale`` / parity with RUNNING_MY_SURFACE_ITER.md
+# ---------------------------------------------------------------------------
+
+# If True before ``ryan_gp/strip_photometry_bands.py`` when building iterate ``--input-bundle`` —
+# removes photometry rows at rounded ``X[:,0]`` matching comma-separated floats (Ryans pseudo-bands).
+GP_RYAN_STRIP_PHOT_BANDS_BEFORE_ITERATE: bool = True
+GP_RYAN_STRIP_BANDS_ROUNDED_X1: str = "-0.8767,-0.8217"
+GP_RYAN_STRIP_OUTPUT_NPZ: str = "gp_minimal_bundle_nophot_m8767_m8217.npz"
+
+# Iterate driver knobs (surfaced before run_gp trailing ``--``).
+GP_RYAN_ITERATE_SURFACE_MU_KEY: str = "mu_raw"  # choices: mu_raw | mu — matches Ryan archived command
+GP_RYAN_ITERATE_OPTIMIZE_RUN_GP: bool = True   # forwarded as ``run_gp.py --optimize``
+GP_RYAN_ITERATE_RUN_GP_MAX_ITER: int = 5 
+GP_RYAN_ITERATE_BUNDLE_SCALE_CLIP: float = 10.0
+GP_RYAN_ITERATE_CONVERGE_MAX_LOG_SCALE: float = 5e-4
+GP_RYAN_ITERATE_CONVERGE_DELTA_CHI2_SPEC: float = 5e-4
+
+# Save ``plot_results`` + ``plot_bands_gp_overview`` PNGs without notebook display after iterate succeeds.
+GP_RYAN_WRITE_GP_STYLE_CHECKS: bool = True
+GP_RYAN_GP_STYLE_CHECKS_SUBDIR: str = "ryan_gp_style_checks"  # under save_plot_path/ryan_surface_iterations/
+GP_RYAN_GP_STYLE_CHECKS_BANDS_IDS: str = "3,5"  # --diag-style overview subset (--only-spec-bundle-ids)
 
 # ``transform2LOG_reshape``: if True (default), ``sigma_ln(F) = sqrt(ln(1 + (sigma_F/F)^2))`` with
 # ``sigma_F = |F| ln(10) sigma_log10``. If False, legacy ``sigma_ln = sigma_log10 * ln(10)`` (log-base chain rule).
@@ -153,6 +183,13 @@ LEGACY_TWODIM_EXTENDED_DIRNAME: str = "TwoDextended_spectra"
 # Legacy flat folder for RJF runs (parallel notebook 6 avoids deleting classic ``TwoDextended_spectra``).
 LEGACY_TWODIM_RJF_DIRNAME: str = "TwoDextended_spectra_rjf"
 
+# ---------------------------------------------------------------------------
+# Ryan iterative GP tooling (notebook 6/7 *_ryanv2.ipynb; ``Codes/ryan_gp/``)
+# Layout parallels ``twodim_rjf/``—outputs rooted under ``twodim_ryanv2/``.
+# ---------------------------------------------------------------------------
+TWODIM_RYANV2_SUBDIR_ROOT: str = "twodim_ryanv2"
+LEGACY_TWODIM_RYANV2_DIRNAME: str = "TwoDextended_spectra_ryanv2"
+
 
 def outputs_root(coco_path: str | None = None) -> str:
     base = coco_path or COCO_PATH
@@ -218,21 +255,31 @@ def twodim_rjf_final_branch(gp_mode_short: str, product: str) -> str:
 
 
 def final_spectra_twodim_branch(
-    gp_mode_short: str, product: str, *, use_rjf: bool
+    gp_mode_short: str,
+    product: str,
+    *,
+    use_rjf: bool = False,
+    use_ryanv2: bool = False,
 ) -> str:
     """Branch under ``FINAL_spectra_2dim`` for 7.5 comparison / spectra / alternate notebooks.
 
-    If ``use_rjf`` is False: ``<mode_short>/<product>`` (classic ``twodim`` pipeline, same as
-    ``comparison_check_log_utils.twodim_final_branch``). If True: ``twodim_rjf/<mode>/<product>``
-    (NB6/7 ``*_rjf`` outputs). Returns forward slashes for portable ``resolve_final_directory`` splits.
+    If ``use_ryanv2``: ``twodim_ryanv2/<mode>/<product>`` (NB6/7 ``*_ryanv2`` Ryan GP branch).
+    Else if ``use_rjf``: ``twodim_rjf/<mode>/<product>`` (NB6/7 ``*_rjf``).
+    Else ``<mode_short>/<product>`` (classic ``twodim``, same as ``comparison_check_log_utils``).
+
+    At most one of ``use_rjf`` and ``use_ryanv2`` may be true.
 
     ``USE_LEGACY_TWODIM_LAYOUT`` is not handled here; use ``twodim_branch=None`` or a manual branch.
     """
+    if use_rjf and use_ryanv2:
+        raise ValueError("use_rjf and use_ryanv2 are mutually exclusive")
     ms = gp_mode_short.replace("\\", "/").strip("/")
     pr = product.replace("\\", "/").strip("/")
-    if not use_rjf:
-        return "%s/%s" % (ms, pr)
-    return twodim_rjf_final_branch(ms, pr).replace("\\", "/")
+    if use_ryanv2:
+        return twodim_ryanv2_final_branch(ms, pr).replace("\\", "/")
+    if use_rjf:
+        return twodim_rjf_final_branch(ms, pr).replace("\\", "/")
+    return "%s/%s" % (ms, pr)
 
 
 def twodim_rjf_remangled_dir(output_dir: str, snname: str, gp_mode: str, product: str) -> str:
@@ -251,6 +298,46 @@ def twodim_rjf_remangled_dir(output_dir: str, snname: str, gp_mode: str, product
     )
 
 
+def twodim_ryanv2_extended_base(output_dir: str, snname: str, gp_mode: str) -> str:
+    """Same role as ``twodim_extended_base`` but rooted under ``twodim_ryanv2/``."""
+    if USE_LEGACY_TWODIM_LAYOUT:
+        return os.path.join(
+            output_dir.rstrip(os.sep), snname, LEGACY_TWODIM_RYANV2_DIRNAME
+        )
+    short = twodim_mode_to_short(gp_mode)
+    return os.path.join(
+        output_dir.rstrip(os.sep), snname, TWODIM_RYANV2_SUBDIR_ROOT, short
+    )
+
+
+def twodim_ryanv2_product_dir(output_dir: str, snname: str, gp_mode: str, product: str) -> str:
+    if product not in (SUBDIR_SPLICED, SUBDIR_FULL_GP):
+        raise ValueError("product must be %r or %r" % (SUBDIR_SPLICED, SUBDIR_FULL_GP))
+    if USE_LEGACY_TWODIM_LAYOUT:
+        return twodim_ryanv2_extended_base(output_dir, snname, gp_mode)
+    return os.path.join(twodim_ryanv2_extended_base(output_dir, snname, gp_mode), product)
+
+
+def twodim_ryanv2_final_branch(gp_mode_short: str, product: str) -> str:
+    """Path segment ``twodim_ryanv2/<short>/<product>`` for FINAL_spectra_2dim (Ryan v2 branch)."""
+    return os.path.join(
+        TWODIM_RYANV2_SUBDIR_ROOT,
+        gp_mode_short.replace("\\", "/").strip("/"),
+        product.replace("\\", "/").strip("/"),
+    )
+
+
+def twodim_ryanv2_remangled_dir(output_dir: str, snname: str, gp_mode: str, product: str) -> str:
+    """Re-mangled spectra for NB7 ``*_ryanv2`` (same subdir basename as ``twodim_rjf``)."""
+    if USE_LEGACY_TWODIM_LAYOUT:
+        return os.path.join(
+            output_dir.rstrip(os.sep), snname, "RE_mangled_spectra_2dim_ryanv2"
+        )
+    return os.path.join(
+        twodim_ryanv2_product_dir(output_dir, snname, gp_mode, product), RJF_REMANGLED_SUBDIR
+    )
+
+
 def raw_photometry_path(coco_path: str | None, snname: str) -> str:
     base = coco_path or COCO_PATH
     return os.path.join(
@@ -265,6 +352,83 @@ def raw_photometry_path(coco_path: str | None, snname: str) -> str:
 def band_mjd_ranges_json_path(output_dir: str, snname: str) -> str:
     return os.path.join(
         output_dir.rstrip(os.sep), snname, "%s_band_mjd_ranges.json" % snname
+    )
+
+
+# ---------------------------------------------------------------------------
+# Pre-scaling (notebook 4.5; Phase 1 iterative GP pipeline)
+# ---------------------------------------------------------------------------
+
+SMOOTHED_SPEC_SUBDIR: str = "2_spec_smoothed"
+SMOOTHED_SPEC_LIST_SUBDIR: str = "2_spec_lists_smoothed"
+PRESCALED_SPEC_SUBDIR: str = "2_spec_prescaled"
+PRESCALED_SPEC_LIST_SUBDIR: str = "2_spec_lists_prescaled"
+
+# ``scale_only``: align flux, keep separate files. ``merge_join``: concatenate arms per group.
+SPEC_SCALE_OUTPUT_MODE: str = "scale_only"
+SPEC_SCALE_MERGE_GAP_POLICY: str = "linear_bridge"  # or ``nan_gap``
+SPEC_SCALE_GAP_LOG10: float = 0.005
+SPEC_SCALE_SAME_TIME_MINUTES: float = 5.0
+SPEC_SCALE_OVERLAP_WL_TOL_A: float = 1.0
+SPEC_SCALE_SAVE_DIAGNOSTICS: bool = True
+SPEC_SCALE_DIAG_SUBDIR: str = "spec_scale_diagnostics"
+
+# Notebook 5: prefer prescaled list when present (fallback to smoothed).
+USE_PRESCALED_SPECTRA: bool = True
+
+# Mangling photometry target for future iterative loop / extracted module.
+MANGLE_PHOTOMETRY_TARGET: str = "gp_fit"  # or ``raw_observed``
+
+
+def spectroscopy_root(coco_path: str | None = None) -> str:
+    base = coco_path or COCO_PATH
+    return os.path.join(os.path.normpath(base), "Inputs", "Spectroscopy")
+
+
+def smoothed_spec_dir(coco_path: str | None, snname: str) -> str:
+    return os.path.join(spectroscopy_root(coco_path), SMOOTHED_SPEC_SUBDIR, snname)
+
+
+def prescaled_spec_dir(coco_path: str | None, snname: str) -> str:
+    return os.path.join(spectroscopy_root(coco_path), PRESCALED_SPEC_SUBDIR, snname)
+
+
+def smoothed_spec_list_path(coco_path: str | None, snname: str) -> str:
+    return os.path.join(
+        spectroscopy_root(coco_path), SMOOTHED_SPEC_LIST_SUBDIR, "%s.list" % snname
+    )
+
+
+def prescaled_spec_list_path(coco_path: str | None, snname: str) -> str:
+    return os.path.join(
+        spectroscopy_root(coco_path), PRESCALED_SPEC_LIST_SUBDIR, "%s.list" % snname
+    )
+
+
+def spec_list_path_for_mangling(coco_path: str | None, snname: str) -> str:
+    """Prescaled list if ``USE_Prescaled_SPECTRA`` and file exists, else smoothed."""
+    if USE_PRESCALED_SPECTRA:
+        pp = prescaled_spec_list_path(coco_path, snname)
+        if os.path.isfile(pp):
+            return pp
+    return smoothed_spec_list_path(coco_path, snname)
+
+
+def spec_scale_groups_json_path(output_dir: str, snname: str) -> str:
+    return os.path.join(
+        output_dir.rstrip(os.sep), snname, "%s_spec_scale_groups.json" % snname
+    )
+
+
+def spec_scale_report_json_path(output_dir: str, snname: str) -> str:
+    return os.path.join(
+        output_dir.rstrip(os.sep), snname, "%s_spec_scale_report.json" % snname
+    )
+
+
+def spec_scale_diagnostics_dir(output_dir: str, snname: str) -> str:
+    return os.path.join(
+        output_dir.rstrip(os.sep), snname, SPEC_SCALE_DIAG_SUBDIR
     )
 
 

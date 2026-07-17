@@ -1,0 +1,77 @@
+[run_gp] tag = matern52_addw_addt_linear_opt
+[run_gp] output dir = /Users/rfoley/kn/gp/runs/matern52_addw_addt_linear_opt
+[run_gp] loading /Users/rfoley/kn/gp/gp_minimal_bundle.npz
+[run_gp] classification (threshold=50): phot=631, spec=8201
+[gp_utils] loaded cached prior interpolators from /Users/rfoley/kn/gp/prior_linear_interp.pkl
+[run_gp] mean = linear -> None
+[run_gp] initial config: {
+  "log_amp": -5.945473892810719,
+  "log_sigma_phot": -3.912023005428146,
+  "log_sigma_spec": -4.605170185988091,
+  "log_metric_t": -3.2188758248682006,
+  "log_metric_w": -4.605170185988091,
+  "log_metric_t2": -0.4462871026284195,
+  "logit_weight_t": 0.0,
+  "log_metric_w2": -1.8325814637483102,
+  "logit_weight_w": 0.0,
+  "amp": 0.002617661563391188,
+  "sigma_phot": 0.02,
+  "sigma_spec": 0.010000000000000005,
+  "metric_t": 0.04000000000000001,
+  "metric_w": 0.010000000000000005,
+  "metric_t2": 0.64,
+  "weight_t_short": 0.5,
+  "metric_w2": 0.15999999999999998,
+  "weight_w_short": 0.5,
+  "name_t": "matern52",
+  "name_w": "matern52",
+  "additive_t": true,
+  "additive_w": true
+}
+[run_gp] optimization on subsample N=2500 (phot=631, spec=1869); final fit will use full N=8832
+[run_gp] optimizing hyperparameters with L-BFGS-B...
+  initial log-likelihood (subsample) = 7340.3074
+  done in 173.36 s, neg_ll evals = 431
+  optimizer success = True, message = 'CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH'
+  final log-likelihood = 9250.4933
+[run_gp] final config: {
+  "log_amp": -5.67238518740239,
+  "log_sigma_phot": -5.123027506850809,
+  "log_sigma_spec": -12.0,
+  "log_metric_t": -2.7981005903511575,
+  "log_metric_w": -8.0,
+  "log_metric_t2": 1.0258972685286538,
+  "logit_weight_t": -1.8936922342051423,
+  "log_metric_w2": 1.1509983225658305,
+  "logit_weight_w": -5.106154603517626,
+  "amp": 0.0034396512711462046,
+  "sigma_phot": 0.005957957804641553,
+  "sigma_spec": 6.14421235332821e-06,
+  "metric_t": 0.06092567560836425,
+  "metric_w": 0.00033546262790251185,
+  "metric_t2": 2.7895973558770786,
+  "weight_t_short": 0.1308240561460255,
+  "metric_w2": 3.161347379265846,
+  "weight_w_short": 0.006022844287183445,
+  "name_t": "matern52",
+  "name_w": "matern52",
+  "additive_t": true,
+  "additive_w": true
+}
+[run_gp] gp.compute(X, diag) ...
+[run_gp]   done in 4.46 s
+[run_gp] log-likelihood = 32377.7817
+[run_gp] predicting on X_fill (N=37291) in chunks of 10000 ...
+[run_gp]   prediction took 50.47 s, neg variances clipped: 0
+[run_gp]   mu  : shape=(37291,) dtype=float64 min=0.829133 mean=0.954178 max=1.1275 n_nan=0
+[run_gp]   std : shape=(37291,) dtype=float64 min=0.000160001 mean=0.00807573 max=0.0487391 n_nan=0
+[run_gp] predicting on X (N=8832) for residuals ...
+[run_gp]   prediction took 11.66 s
+[run_gp] residuals (mu_train - y):
+  mean = 0.000257598, std = 0.0200675, max|.| = 0.987333
+  within +/- sigma_eff: 8176/8832 (92.6%)
+  chi^2/N total = 1.0190
+  chi^2/N phot  = 0.6958 (n=631)
+  chi^2/N spec  = 1.0439 (n=8201)
+[run_gp] wrote /Users/rfoley/kn/gp/runs/matern52_addw_addt_linear_opt/predictions.npz
+[run_gp] wrote /Users/rfoley/kn/gp/runs/matern52_addw_addt_linear_opt/config.json

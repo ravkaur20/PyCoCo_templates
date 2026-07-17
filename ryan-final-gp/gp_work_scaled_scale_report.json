@@ -1,0 +1,797 @@
+{
+  "input": "/Users/rfoley/kn/gp/gp_bundle_collab_fixes.npz",
+  "n_epochs": 38,
+  "epochs": [
+    {
+      "epoch": 0,
+      "bundle": 0,
+      "canonical_phase_norm": -1.8567201533435638,
+      "centroid_time_days": 0.49025000000256114
+    },
+    {
+      "epoch": 1,
+      "bundle": 1,
+      "canonical_phase_norm": -1.8225221075556406,
+      "centroid_time_days": 0.5082000000038533
+    },
+    {
+      "epoch": 2,
+      "bundle": 2,
+      "canonical_phase_norm": -1.779031508328799,
+      "centroid_time_days": 0.5319799999997485
+    },
+    {
+      "epoch": 3,
+      "bundle": 3,
+      "canonical_phase_norm": -0.8313592298796559,
+      "centroid_time_days": 1.4410009999992326
+    },
+    {
+      "epoch": 4,
+      "bundle": 3,
+      "canonical_phase_norm": -0.8313585699128673,
+      "centroid_time_days": 1.4410019999995711
+    },
+    {
+      "epoch": 5,
+      "bundle": 3,
+      "canonical_phase_norm": -0.8313579099465366,
+      "centroid_time_days": 1.4410029999999097
+    },
+    {
+      "epoch": 6,
+      "bundle": 4,
+      "canonical_phase_norm": -0.8166903475351397,
+      "centroid_time_days": 1.4634000000005474
+    },
+    {
+      "epoch": 7,
+      "bundle": 5,
+      "canonical_phase_norm": -0.7803512325383816,
+      "centroid_time_days": 1.5204000000012456
+    },
+    {
+      "epoch": 8,
+      "bundle": 6,
+      "canonical_phase_norm": -0.33010872705928074,
+      "centroid_time_days": 2.4410009999992326
+    },
+    {
+      "epoch": 9,
+      "bundle": 6,
+      "canonical_phase_norm": -0.33010833745971163,
+      "centroid_time_days": 2.441001999999571
+    },
+    {
+      "epoch": 10,
+      "bundle": 6,
+      "canonical_phase_norm": -0.3301079478603022,
+      "centroid_time_days": 2.4410029999999097
+    },
+    {
+      "epoch": 11,
+      "bundle": 7,
+      "canonical_phase_norm": -0.002193587831074961,
+      "centroid_time_days": 3.446001000003889
+    },
+    {
+      "epoch": 12,
+      "bundle": 7,
+      "canonical_phase_norm": -0.002193311855242679,
+      "centroid_time_days": 3.4460020000042273
+    },
+    {
+      "epoch": 13,
+      "bundle": 7,
+      "canonical_phase_norm": -0.002193035879490382,
+      "centroid_time_days": 3.446003000004566
+    },
+    {
+      "epoch": 14,
+      "bundle": 8,
+      "canonical_phase_norm": 0.002263722213689158,
+      "centroid_time_days": 3.462189999998373
+    },
+    {
+      "epoch": 15,
+      "bundle": 9,
+      "canonical_phase_norm": 0.24011554833522933,
+      "centroid_time_days": 4.446001000003889
+    },
+    {
+      "epoch": 16,
+      "bundle": 9,
+      "canonical_phase_norm": 0.24011576223824602,
+      "centroid_time_days": 4.446002000004228
+    },
+    {
+      "epoch": 17,
+      "bundle": 9,
+      "canonical_phase_norm": 0.24011597614121433,
+      "centroid_time_days": 4.446003000004566
+    },
+    {
+      "epoch": 18,
+      "bundle": 10,
+      "canonical_phase_norm": 0.25309792827607647,
+      "centroid_time_days": 4.507109999998647
+    },
+    {
+      "epoch": 19,
+      "bundle": 11,
+      "canonical_phase_norm": 0.43410091299950376,
+      "centroid_time_days": 5.452001000005112
+    },
+    {
+      "epoch": 20,
+      "bundle": 11,
+      "canonical_phase_norm": 0.43410108743199666,
+      "centroid_time_days": 5.452001999998174
+    },
+    {
+      "epoch": 21,
+      "bundle": 11,
+      "canonical_phase_norm": 0.43410126186572673,
+      "centroid_time_days": 5.452002999998513
+    },
+    {
+      "epoch": 22,
+      "bundle": 12,
+      "canonical_phase_norm": 0.5957315552049506,
+      "centroid_time_days": 6.462000999999873
+    },
+    {
+      "epoch": 23,
+      "bundle": 12,
+      "canonical_phase_norm": 0.595731702375008,
+      "centroid_time_days": 6.462002000000211
+    },
+    {
+      "epoch": 24,
+      "bundle": 12,
+      "canonical_phase_norm": 0.5957318495450429,
+      "centroid_time_days": 6.46200300000055
+    },
+    {
+      "epoch": 25,
+      "bundle": 13,
+      "canonical_phase_norm": 0.731528248607233,
+      "centroid_time_days": 7.453849999998055
+    },
+    {
+      "epoch": 26,
+      "bundle": 14,
+      "canonical_phase_norm": 0.7338412613843756,
+      "centroid_time_days": 7.47200100000191
+    },
+    {
+      "epoch": 27,
+      "bundle": 14,
+      "canonical_phase_norm": 0.7338413886612681,
+      "centroid_time_days": 7.472002000002248
+    },
+    {
+      "epoch": 28,
+      "bundle": 14,
+      "canonical_phase_norm": 0.7338415159381438,
+      "centroid_time_days": 7.472003000002587
+    },
+    {
+      "epoch": 29,
+      "bundle": 15,
+      "canonical_phase_norm": 0.8516776047221815,
+      "centroid_time_days": 8.45763000000443
+    },
+    {
+      "epoch": 30,
+      "bundle": 16,
+      "canonical_phase_norm": 0.8532921713220183,
+      "centroid_time_days": 8.47200100000191
+    },
+    {
+      "epoch": 31,
+      "bundle": 16,
+      "canonical_phase_norm": 0.8532923958293146,
+      "centroid_time_days": 8.472003000002585
+    },
+    {
+      "epoch": 32,
+      "bundle": 17,
+      "canonical_phase_norm": 0.9593999586037514,
+      "centroid_time_days": 9.47200100000191
+    },
+    {
+      "epoch": 33,
+      "bundle": 17,
+      "canonical_phase_norm": 0.9594000590063043,
+      "centroid_time_days": 9.472002000002249
+    },
+    {
+      "epoch": 34,
+      "bundle": 17,
+      "canonical_phase_norm": 0.9594001594088466,
+      "centroid_time_days": 9.472003000002587
+    },
+    {
+      "epoch": 35,
+      "bundle": 18,
+      "canonical_phase_norm": 1.0548483026349305,
+      "centroid_time_days": 10.472001000001908
+    },
+    {
+      "epoch": 36,
+      "bundle": 18,
+      "canonical_phase_norm": 1.0548483934497699,
+      "centroid_time_days": 10.47200200000225
+    },
+    {
+      "epoch": 37,
+      "bundle": 18,
+      "canonical_phase_norm": 1.0548484842646002,
+      "centroid_time_days": 10.472003000002587
+    }
+  ],
+  "intra_linear_mult_by_epoch": {
+    "0": 1.0,
+    "1": 1.0,
+    "2": 1.0,
+    "3": 0.7182328005955102,
+    "4": 1.0,
+    "5": 0.7943053159013237,
+    "6": 1.0,
+    "7": 1.0,
+    "8": 1.1864794533988852,
+    "9": 1.0,
+    "10": 1.330630572349336,
+    "11": 1.8029247762201863,
+    "12": 1.0,
+    "13": 1.6589270904580677,
+    "14": 1.0,
+    "15": 1.6716182868703784,
+    "16": 1.0,
+    "17": 1.5415480010014109,
+    "18": 1.0,
+    "19": 1.6130063116629336,
+    "20": 1.0,
+    "21": 1.3851552635625686,
+    "22": 2.010810168413332,
+    "23": 1.0,
+    "24": 1.8327195913513945,
+    "25": 1.0,
+    "26": 1.4467405606971997,
+    "27": 1.0,
+    "28": 1.3169550374562957,
+    "29": 1.0,
+    "30": 0.9629245365610462,
+    "31": 1.0,
+    "32": 0.9687550777368821,
+    "33": 1.0,
+    "34": 1.1060519216090137,
+    "35": 1.2072401239728143,
+    "36": 1.0,
+    "37": 0.8837443207849576
+  },
+  "global_scale_iterations": [
+    {
+      "iteration": 0,
+      "per_bundle_meta": {
+        "bundle_0": {
+          "per_epoch": {
+            "0": {
+              "applied": true,
+              "n_used": 4,
+              "n_phot_near": 31,
+              "n_phot_in_range": 4,
+              "delta_log": -1.06549623084647
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 0,
+          "representative_phase_norm_bluest": -1.8567201533435638,
+          "delta_log_scale_bundle_sum": -1.06549623084647,
+          "bundle_shared_log_scale": -1.06549623084647,
+          "bundle_shared_linear_scale": 0.34455683260879194,
+          "bundle_shared_applied_epochs": 1
+        },
+        "bundle_1": {
+          "per_epoch": {
+            "1": {
+              "applied": true,
+              "n_used": 4,
+              "n_phot_near": 49,
+              "n_phot_in_range": 4,
+              "delta_log": -0.007909457430405218
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 1,
+          "representative_phase_norm_bluest": -1.8225221075556406,
+          "delta_log_scale_bundle_sum": -0.007909457430405218,
+          "bundle_shared_log_scale": -0.007909457430405218,
+          "bundle_shared_linear_scale": 0.9921217400221902,
+          "bundle_shared_applied_epochs": 1
+        },
+        "bundle_2": {
+          "per_epoch": {
+            "2": {
+              "applied": true,
+              "n_used": 4,
+              "n_phot_near": 36,
+              "n_phot_in_range": 4,
+              "delta_log": -0.6389693481089344
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 2,
+          "representative_phase_norm_bluest": -1.779031508328799,
+          "delta_log_scale_bundle_sum": -0.6389693481089344,
+          "bundle_shared_log_scale": -0.6389693481089344,
+          "bundle_shared_linear_scale": 0.5278361591296992,
+          "bundle_shared_applied_epochs": 1
+        },
+        "bundle_3": {
+          "per_epoch": {
+            "3": {
+              "applied": true,
+              "n_used": 57,
+              "n_phot_near": 106,
+              "n_phot_in_range": 57,
+              "delta_log": 0.27885498815597415
+            },
+            "4": {
+              "applied": true,
+              "n_used": 16,
+              "n_phot_near": 106,
+              "n_phot_in_range": 16,
+              "delta_log": -0.2198497863330279
+            },
+            "5": {
+              "applied": true,
+              "n_used": 34,
+              "n_phot_near": 106,
+              "n_phot_in_range": 34,
+              "delta_log": 0.20238458996334116
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 4,
+          "representative_phase_norm_bluest": -0.8313585699128673,
+          "delta_log_scale_bundle_sum": 0.20238458996334116,
+          "bundle_shared_log_scale": 0.20238458996334116,
+          "bundle_shared_linear_scale": 1.2243187782928737,
+          "bundle_shared_applied_epochs": 3
+        },
+        "bundle_4": {
+          "per_epoch": {
+            "6": {
+              "applied": true,
+              "n_used": 34,
+              "n_phot_near": 106,
+              "n_phot_in_range": 34,
+              "delta_log": 0.03199021909846388
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 6,
+          "representative_phase_norm_bluest": -0.8166903475351397,
+          "delta_log_scale_bundle_sum": 0.03199021909846388,
+          "bundle_shared_log_scale": 0.03199021909846388,
+          "bundle_shared_linear_scale": 1.032507406402453,
+          "bundle_shared_applied_epochs": 1
+        },
+        "bundle_5": {
+          "per_epoch": {
+            "7": {
+              "applied": true,
+              "n_used": 29,
+              "n_phot_near": 106,
+              "n_phot_in_range": 29,
+              "delta_log": 0.02212883841585321
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 7,
+          "representative_phase_norm_bluest": -0.7803512325383816,
+          "delta_log_scale_bundle_sum": 0.02212883841585321,
+          "bundle_shared_log_scale": 0.02212883841585321,
+          "bundle_shared_linear_scale": 1.0223754972248944,
+          "bundle_shared_applied_epochs": 1
+        },
+        "bundle_6": {
+          "per_epoch": {
+            "8": {
+              "applied": true,
+              "n_used": 30,
+              "n_phot_near": 84,
+              "n_phot_in_range": 30,
+              "delta_log": -0.18525520057261163
+            },
+            "9": {
+              "applied": true,
+              "n_used": 20,
+              "n_phot_near": 84,
+              "n_phot_in_range": 20,
+              "delta_log": -0.4431429260492988
+            },
+            "10": {
+              "applied": true,
+              "n_used": 34,
+              "n_phot_near": 84,
+              "n_phot_in_range": 34,
+              "delta_log": -0.32806528209706237
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 9,
+          "representative_phase_norm_bluest": -0.33010833745971163,
+          "delta_log_scale_bundle_sum": -0.32806528209706237,
+          "bundle_shared_log_scale": -0.32806528209706237,
+          "bundle_shared_linear_scale": 0.7203159944316997,
+          "bundle_shared_applied_epochs": 3
+        },
+        "bundle_7": {
+          "per_epoch": {
+            "11": {
+              "applied": true,
+              "n_used": 51,
+              "n_phot_near": 110,
+              "n_phot_in_range": 51,
+              "delta_log": -0.6128205800371116
+            },
+            "12": {
+              "applied": true,
+              "n_used": 19,
+              "n_phot_near": 110,
+              "n_phot_in_range": 19,
+              "delta_log": -0.2874845148136928
+            },
+            "13": {
+              "applied": true,
+              "n_used": 40,
+              "n_phot_near": 110,
+              "n_phot_in_range": 40,
+              "delta_log": -0.5747179445246402
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 12,
+          "representative_phase_norm_bluest": -0.002193311855242679,
+          "delta_log_scale_bundle_sum": -0.5747179445246402,
+          "bundle_shared_log_scale": -0.5747179445246402,
+          "bundle_shared_linear_scale": 0.5628636051813938,
+          "bundle_shared_applied_epochs": 3
+        },
+        "bundle_8": {
+          "per_epoch": {
+            "14": {
+              "applied": true,
+              "n_used": 53,
+              "n_phot_near": 110,
+              "n_phot_in_range": 53,
+              "delta_log": -0.018760891349613094
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 14,
+          "representative_phase_norm_bluest": 0.002263722213689158,
+          "delta_log_scale_bundle_sum": -0.018760891349613094,
+          "bundle_shared_log_scale": -0.018760891349613094,
+          "bundle_shared_linear_scale": 0.9814139987665927,
+          "bundle_shared_applied_epochs": 1
+        },
+        "bundle_9": {
+          "per_epoch": {
+            "15": {
+              "applied": true,
+              "n_used": 52,
+              "n_phot_near": 99,
+              "n_phot_in_range": 52,
+              "delta_log": -0.5407462154083817
+            },
+            "16": {
+              "applied": true,
+              "n_used": 9,
+              "n_phot_near": 99,
+              "n_phot_in_range": 9,
+              "delta_log": -0.2837225181270738
+            },
+            "17": {
+              "applied": true,
+              "n_used": 38,
+              "n_phot_near": 99,
+              "n_phot_in_range": 38,
+              "delta_log": -0.45369068629348186
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 16,
+          "representative_phase_norm_bluest": 0.24011576223824602,
+          "delta_log_scale_bundle_sum": -0.45369068629348186,
+          "bundle_shared_log_scale": -0.45369068629348186,
+          "bundle_shared_linear_scale": 0.6352792034239871,
+          "bundle_shared_applied_epochs": 3
+        },
+        "bundle_10": {
+          "per_epoch": {
+            "18": {
+              "applied": true,
+              "n_used": 35,
+              "n_phot_near": 99,
+              "n_phot_in_range": 35,
+              "delta_log": 0.02257689293555074
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 18,
+          "representative_phase_norm_bluest": 0.25309792827607647,
+          "delta_log_scale_bundle_sum": 0.02257689293555074,
+          "bundle_shared_log_scale": 0.02257689293555074,
+          "bundle_shared_linear_scale": 1.0228336798249813,
+          "bundle_shared_applied_epochs": 1
+        },
+        "bundle_11": {
+          "per_epoch": {
+            "19": {
+              "applied": true,
+              "n_used": 26,
+              "n_phot_near": 56,
+              "n_phot_in_range": 26,
+              "delta_log": -0.5216590480031738
+            },
+            "20": {
+              "applied": true,
+              "n_used": 6,
+              "n_phot_near": 56,
+              "n_phot_in_range": 6,
+              "delta_log": -0.3352038264471453
+            },
+            "21": {
+              "applied": true,
+              "n_used": 24,
+              "n_phot_near": 56,
+              "n_phot_in_range": 24,
+              "delta_log": -0.35527186248742915
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 20,
+          "representative_phase_norm_bluest": 0.43410108743199666,
+          "delta_log_scale_bundle_sum": -0.35527186248742915,
+          "bundle_shared_log_scale": -0.35527186248742915,
+          "bundle_shared_linear_scale": 0.7009828463614228,
+          "bundle_shared_applied_epochs": 3
+        },
+        "bundle_12": {
+          "per_epoch": {
+            "22": {
+              "applied": true,
+              "n_used": 24,
+              "n_phot_near": 57,
+              "n_phot_in_range": 24,
+              "delta_log": -0.8013677448573922
+            },
+            "23": {
+              "applied": true,
+              "n_used": 6,
+              "n_phot_near": 57,
+              "n_phot_in_range": 6,
+              "delta_log": -0.5416814476632615
+            },
+            "24": {
+              "applied": true,
+              "n_used": 24,
+              "n_phot_near": 57,
+              "n_phot_in_range": 24,
+              "delta_log": -0.6524574658621355
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 23,
+          "representative_phase_norm_bluest": 0.595731702375008,
+          "delta_log_scale_bundle_sum": -0.6524574658621355,
+          "bundle_shared_log_scale": -0.6524574658621355,
+          "bundle_shared_linear_scale": 0.5207644421490337,
+          "bundle_shared_applied_epochs": 3
+        },
+        "bundle_13": {
+          "per_epoch": {
+            "25": {
+              "applied": true,
+              "n_used": 20,
+              "n_phot_near": 88,
+              "n_phot_in_range": 20,
+              "delta_log": -0.18521274115367273
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 25,
+          "representative_phase_norm_bluest": 0.731528248607233,
+          "delta_log_scale_bundle_sum": -0.18521274115367273,
+          "bundle_shared_log_scale": -0.18521274115367273,
+          "bundle_shared_linear_scale": 0.8309274925740137,
+          "bundle_shared_applied_epochs": 1
+        },
+        "bundle_14": {
+          "per_epoch": {
+            "26": {
+              "applied": true,
+              "n_used": 47,
+              "n_phot_near": 88,
+              "n_phot_in_range": 47,
+              "delta_log": -0.48168753418865223
+            },
+            "27": {
+              "applied": true,
+              "n_used": 5,
+              "n_phot_near": 88,
+              "n_phot_in_range": 5,
+              "delta_log": -0.556234216301698
+            },
+            "28": {
+              "applied": true,
+              "n_used": 31,
+              "n_phot_near": 88,
+              "n_phot_in_range": 31,
+              "delta_log": -0.30576507485622817
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 27,
+          "representative_phase_norm_bluest": 0.7338413886612681,
+          "delta_log_scale_bundle_sum": -0.48168753418865223,
+          "bundle_shared_log_scale": -0.48168753418865223,
+          "bundle_shared_linear_scale": 0.6177400542585876,
+          "bundle_shared_applied_epochs": 3
+        },
+        "bundle_15": {
+          "per_epoch": {
+            "29": {
+              "applied": true,
+              "n_used": 5,
+              "n_phot_near": 38,
+              "n_phot_in_range": 5,
+              "delta_log": -0.07193965334370306
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 29,
+          "representative_phase_norm_bluest": 0.8516776047221815,
+          "delta_log_scale_bundle_sum": -0.07193965334370306,
+          "bundle_shared_log_scale": -0.07193965334370306,
+          "bundle_shared_linear_scale": 0.930587051933749,
+          "bundle_shared_applied_epochs": 1
+        },
+        "bundle_16": {
+          "per_epoch": {
+            "30": {
+              "applied": true,
+              "n_used": 24,
+              "n_phot_near": 38,
+              "n_phot_in_range": 24,
+              "delta_log": -0.014568651759079001
+            },
+            "31": {
+              "applied": true,
+              "n_used": 7,
+              "n_phot_near": 38,
+              "n_phot_in_range": 7,
+              "delta_log": 0.04772198720851391
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 31,
+          "representative_phase_norm_bluest": 0.8532923958293146,
+          "delta_log_scale_bundle_sum": 0.016576667724717453,
+          "bundle_shared_log_scale": 0.016576667724717453,
+          "bundle_shared_linear_scale": 1.0167148230102043,
+          "bundle_shared_applied_epochs": 2
+        },
+        "bundle_17": {
+          "per_epoch": {
+            "32": {
+              "applied": true,
+              "n_used": 33,
+              "n_phot_near": 54,
+              "n_phot_in_range": 33,
+              "delta_log": -0.1293098317259841
+            },
+            "33": {
+              "applied": true,
+              "n_used": 3,
+              "n_phot_near": 54,
+              "n_phot_in_range": 3,
+              "delta_log": -0.05573289477839857
+            },
+            "34": {
+              "applied": true,
+              "n_used": 15,
+              "n_phot_near": 54,
+              "n_phot_in_range": 15,
+              "delta_log": -0.16819598020211185
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 33,
+          "representative_phase_norm_bluest": 0.9594000590063043,
+          "delta_log_scale_bundle_sum": -0.1293098317259841,
+          "bundle_shared_log_scale": -0.1293098317259841,
+          "bundle_shared_linear_scale": 0.8787016737092461,
+          "bundle_shared_applied_epochs": 3
+        },
+        "bundle_18": {
+          "per_epoch": {
+            "35": {
+              "applied": true,
+              "n_used": 20,
+              "n_phot_near": 28,
+              "n_phot_in_range": 20,
+              "delta_log": -0.2761150053320197
+            },
+            "36": {
+              "applied": true,
+              "n_used": 2,
+              "n_phot_near": 28,
+              "n_phot_in_range": 2,
+              "delta_log": 0.04071342665678364
+            },
+            "37": {
+              "applied": true,
+              "n_used": 6,
+              "n_phot_near": 28,
+              "n_phot_in_range": 6,
+              "delta_log": 0.10625584859625796
+            }
+          },
+          "any_applied": true,
+          "anchor_mode": "rough_phot_wavelength_points",
+          "representative_spec_epoch_bluest_median_wl": 36,
+          "representative_phase_norm_bluest": 1.0548483934497699,
+          "delta_log_scale_bundle_sum": 0.04071342665678364,
+          "bundle_shared_log_scale": 0.04071342665678364,
+          "bundle_shared_linear_scale": 1.0415535812810477,
+          "bundle_shared_applied_epochs": 3
+        }
+      }
+    }
+  ],
+  "global_log_sigma_delta_summed_bundle": {
+    "0": -1.06549623084647,
+    "1": -0.007909457430405218,
+    "2": -0.6389693481089344,
+    "3": 0.20238458996334116,
+    "4": 0.03199021909846388,
+    "5": 0.02212883841585321,
+    "6": -0.32806528209706237,
+    "7": -0.5747179445246402,
+    "8": -0.018760891349613094,
+    "9": -0.45369068629348186,
+    "10": 0.02257689293555074,
+    "11": -0.35527186248742915,
+    "12": -0.6524574658621355,
+    "13": -0.18521274115367273,
+    "14": -0.48168753418865223,
+    "15": -0.07193965334370306,
+    "16": 0.016576667724717453,
+    "17": -0.1293098317259841,
+    "18": 0.04071342665678364
+  },
+  "predictions_gp_tag_latest": ""
+}

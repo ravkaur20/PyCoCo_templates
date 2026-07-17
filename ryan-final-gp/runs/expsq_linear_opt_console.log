@@ -1,0 +1,61 @@
+[run_gp] tag = expsq_linear_opt
+[run_gp] output dir = /Users/rfoley/kn/gp/runs/expsq_linear_opt
+[run_gp] loading /Users/rfoley/kn/gp/gp_minimal_bundle.npz
+[run_gp] classification (threshold=50): phot=631, spec=8201
+[gp_utils] loaded cached prior interpolators from /Users/rfoley/kn/gp/prior_linear_interp.pkl
+[run_gp] mean = linear -> None
+[run_gp] initial config: {
+  "log_amp": -5.945473892810719,
+  "log_sigma_phot": -3.912023005428146,
+  "log_sigma_spec": -4.605170185988091,
+  "log_metric_t": -3.2188758248682006,
+  "log_metric_w": -4.605170185988091,
+  "amp": 0.002617661563391188,
+  "sigma_phot": 0.02,
+  "sigma_spec": 0.010000000000000005,
+  "metric_t": 0.04000000000000001,
+  "metric_w": 0.010000000000000005,
+  "name_t": "expsq",
+  "name_w": "expsq",
+  "additive_t": false,
+  "additive_w": false
+}
+[run_gp] optimization on subsample N=2500 (phot=631, spec=1869); final fit will use full N=8832
+[run_gp] optimizing hyperparameters with L-BFGS-B...
+  initial log-likelihood (subsample) = 7268.8236
+  done in 25.26 s, neg_ll evals = 97
+  optimizer success = True, message = 'CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH'
+  final log-likelihood = 8999.4122
+[run_gp] final config: {
+  "log_amp": -5.959332146568789,
+  "log_sigma_phot": -4.982981362912487,
+  "log_sigma_spec": -7.60578408745524,
+  "log_metric_t": -2.2965817738110923,
+  "log_metric_w": -1.9993983100279282,
+  "amp": 0.0025816355505747807,
+  "sigma_phot": 0.006853599002129295,
+  "sigma_spec": 0.0004975651339337931,
+  "metric_t": 0.10060213752175226,
+  "metric_w": 0.1354167376220897,
+  "name_t": "expsq",
+  "name_w": "expsq",
+  "additive_t": false,
+  "additive_w": false
+}
+[run_gp] gp.compute(X, diag) ...
+[run_gp]   done in 2.90 s
+[run_gp] log-likelihood = 31474.2715
+[run_gp] predicting on X_fill (N=37291) in chunks of 10000 ...
+[run_gp]   prediction took 31.83 s, neg variances clipped: 0
+[run_gp]   mu  : shape=(37291,) dtype=float64 min=0.833234 mean=0.971853 max=1.19931 n_nan=0
+[run_gp]   std : shape=(37291,) dtype=float64 min=0.000127445 mean=0.0143716 max=0.0508098 n_nan=0
+[run_gp] predicting on X (N=8832) for residuals ...
+[run_gp]   prediction took 7.73 s
+[run_gp] residuals (mu_train - y):
+  mean = 0.00021706, std = 0.0203352, max|.| = 0.987783
+  within +/- sigma_eff: 7775/8832 (88.0%)
+  chi^2/N total = 1.2173
+  chi^2/N phot  = 0.8165 (n=631)
+  chi^2/N spec  = 1.2481 (n=8201)
+[run_gp] wrote /Users/rfoley/kn/gp/runs/expsq_linear_opt/predictions.npz
+[run_gp] wrote /Users/rfoley/kn/gp/runs/expsq_linear_opt/config.json
